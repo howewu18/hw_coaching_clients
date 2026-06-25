@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Marximus — Physique Statement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#F4F3EF;--card:#FBFAF7;--ink:#181A1C;--ink-2:#5A5C5A;--ink-3:#9A9B96;
+    --line:#E2E0D8;--line-2:#D2CFC4;
+    --gain:#1E6E4C;--gain-soft:#E7F0EA;--behind:#A6432F;
+    --gold:#B8860B;--gold-soft:#FFF8E1;
+    --display:'Spectral',Georgia,serif;--ui:'Hanken Grotesk',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--ui);line-height:1.45;-webkit-font-smoothing:antialiased;padding:0 0 56px;}
+  .wrap{max-width:520px;margin:0 auto;padding:0 18px;}
+
+  .masthead{padding:30px 0 18px;border-bottom:1px solid var(--line-2);}
+  .masthead-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .brand{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);}
+  .period{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-3);text-align:right;}
+  .client-name{font-family:var(--display);font-weight:500;font-size:30px;letter-spacing:-.01em;margin-top:14px;line-height:1.05;}
+  .client-sub{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-2);margin-top:5px;}
+
+  .sec-label{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin:30px 0 12px;}
+  .sec-label::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  /* bodyweight */
+  .nav-card{padding:6px 0 4px;}
+  .nav-top{display:flex;justify-content:space-between;align-items:flex-end;}
+  .nav-figure{font-family:var(--display);font-weight:600;font-size:62px;line-height:.92;letter-spacing:-.02em;}
+  .nav-figure .unit{font-size:22px;font-weight:400;color:var(--ink-2);margin-left:4px;letter-spacing:0;}
+  .nav-delta{text-align:right;font-family:var(--mono);font-size:13px;line-height:1.3;}
+  .nav-delta .big{font-size:16px;font-weight:600;display:block;}
+  .pos{color:var(--gain);}.neg{color:var(--behind);}.muted{color:var(--ink-3);}
+  .ledger-bar{margin-top:20px;}
+  .ledger-track{position:relative;height:8px;background:var(--line);border-radius:2px;}
+  .ledger-fill{position:absolute;left:0;top:0;bottom:0;background:var(--gain);border-radius:2px;width:0;transition:width 1.2s cubic-bezier(.2,.7,.2,1);}
+  .ledger-tick{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);right:0;}
+  .ledger-ends{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+  .ledger-ends .goal{color:var(--ink);}
+
+  /* lifts */
+  .positions{border-top:1px solid var(--line);}
+  .pos-row{display:grid;grid-template-columns:1fr 64px auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);}
+  .pos-name{font-weight:600;font-size:15px;letter-spacing:-.01em;}
+  .pos-detail{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:2px;}
+  .spark{width:64px;height:26px;display:block;}
+  .pos-figs{text-align:right;}
+  .pos-e1rm{font-family:var(--mono);font-size:14px;font-weight:600;}
+  .pos-chg{font-family:var(--mono);font-size:11px;margin-top:2px;}
+
+  /* streak */
+  .streak{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;
+    background:var(--ink);color:#F4F3EF;border-radius:12px;margin-bottom:12px;}
+  .streak-left{display:flex;align-items:baseline;gap:6px;}
+  .streak-fig{font-family:var(--display);font-weight:600;font-size:48px;line-height:.9;}
+  .streak-unit{font-family:var(--ui);font-size:13px;font-weight:500;color:#A7A99F;}
+  .streak-right{text-align:right;}
+  .streak-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#A7A99F;display:block;margin-bottom:3px;}
+  .streak-best{font-family:var(--mono);font-size:11px;color:#C9CBC2;}
+
+  /* double-session pips */
+  .pips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .pip{width:18px;height:18px;border-radius:50%;background:var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--ink-3);font-family:var(--mono);}
+  .pip.single{background:var(--gain-soft);color:var(--gain);}
+  .pip.double{background:var(--gold-soft);color:var(--gold);font-size:11px;}
+
+  /* sessions */
+  .weekgrid{display:flex;gap:10px;flex-wrap:wrap;}
+  .session{flex:1;min-width:130px;display:flex;align-items:center;gap:11px;
+    padding:14px 15px;background:var(--card);border:1px solid var(--line);border-radius:10px;}
+  .dot{width:11px;height:11px;border-radius:50%;flex:none;}
+  .dot.done{background:var(--gain);box-shadow:0 0 0 4px var(--gain-soft);}
+  .dot.open{background:transparent;border:1.5px solid var(--line-2);}
+  .dot.double-dot{background:var(--gold);box-shadow:0 0 0 4px var(--gold-soft);}
+  .session-name{font-weight:600;font-size:14px;}
+  .session-state{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:1px;}
+
+  /* fuel */
+  .fuel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .fuel-avg{font-family:var(--mono);font-size:12px;color:var(--ink-2);}
+  .fuel-avg strong{color:var(--ink);font-weight:600;}
+  .meals{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;}
+  .meal-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .meal-track{width:100%;max-width:28px;height:64px;background:var(--line);border-radius:4px;display:flex;flex-direction:column-reverse;overflow:hidden;}
+  .meal-fill{width:100%;background:var(--gain);transition:height .6s ease;}
+  .meal-fill.short{background:var(--line-2);}
+  .meal-day{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);}
+  .meal-n{font-family:var(--mono);font-size:10px;color:var(--ink-2);}
+
+  /* coach note */
+  .coach{padding:20px;background:var(--card);border:1px solid var(--line);border-radius:12px;}
+  .coach-from{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;}
+  .coach-msg{font-family:var(--display);font-style:italic;font-size:17px;line-height:1.45;color:var(--ink);}
+
+  /* video */
+  .video-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);}
+  .video-embed{aspect-ratio:16/9;width:100%;display:block;border:0;}
+  .video-frame{aspect-ratio:16/9;background:linear-gradient(135deg,#1e2022,#2e3235);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .play{width:52px;height:52px;border-radius:50%;background:rgba(244,243,239,.9);display:flex;align-items:center;justify-content:center;}
+  .play::after{content:"";border-left:14px solid var(--ink);border-top:9px solid transparent;border-bottom:9px solid transparent;margin-left:4px;}
+  .video-meta{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;}
+  .video-title{font-weight:600;font-size:14px;}
+  .video-date{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+
+  /* coach panel */
+  .panel{margin-top:40px;border:1px dashed var(--line-2);border-radius:10px;overflow:hidden;}
+  .panel summary{cursor:pointer;list-style:none;padding:13px 16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between;align-items:center;}
+  .panel summary::-webkit-details-marker{display:none;}
+  .panel[open] summary{border-bottom:1px dashed var(--line-2);}
+  .panel-body{padding:14px 16px;}
+  .panel-body p{font-size:12px;color:var(--ink-2);margin-bottom:10px;line-height:1.5;}
+  textarea{width:100%;min-height:260px;font-family:var(--mono);font-size:11px;line-height:1.5;padding:12px;border:1px solid var(--line-2);border-radius:8px;background:#fff;color:var(--ink);resize:vertical;}
+  .panel-row{display:flex;gap:10px;margin-top:10px;align-items:center;}
+  .btn{font-family:var(--ui);font-weight:600;font-size:13px;padding:9px 16px;border-radius:8px;border:none;background:var(--ink);color:#F4F3EF;cursor:pointer;}
+  .err{font-family:var(--mono);font-size:11px;color:var(--behind);}
+
+  @media(prefers-reduced-motion:reduce){.ledger-fill,.meal-fill{transition:none;}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<details class="panel">
+  <summary><span>Coach panel — weekly update</span><span>&#9662;</span></summary>
+  <div class="panel-body">
+    <p>Paste the JSON generated from your weekly call transcript, then press Update. The dashboard re-renders immediately.</p>
+    <textarea id="json-input" spellcheck="false"></textarea>
+    <div class="panel-row">
+      <button class="btn" id="apply">Update dashboard</button>
+      <span class="err" id="err"></span>
+    </div>
+  </div>
+</details>
+
+<script>
+/* ================================================================
+   CLIENT DATA — swap this object each week (or swap the JSON file
+   in production). App code never changes.
+   ================================================================ */
+const DATA = {
+  client:{ name:"Marximus", startWeight:55.0, goalWeight:70.0, heightCm:175, startDate:"2026-06-23" },
+  asOf:"2026-06-23",
+  streak:{ currentWeeks:0, bestWeeks:0, doubleWeeks:[] },
+  coachMessage:"Week one starts now. Two sessions, eat your four meals, get to bed before 1am at least three nights. That's the whole job.",
+  weeklyVideo:{ title:"Week 1 check-in", date:"2026-06-23", embedUrl:"" },
+  bodyweight:[
+    { date:"2026-06-23", kg:55.0 }
+  ],
+  sessions:[
+    { name:"Upper", done:false },
+    { name:"Lower + Abs", done:false }
+  ],
+  lifts:[
+    { name:"Bench Press",     history:[] },
+    { name:"Lat Pulldown",    history:[] },
+    { name:"EZ Bar Curl",     history:[] },
+    { name:"DB Overhead Press", history:[] },
+    { name:"Romanian DL (EZ)",history:[] },
+    { name:"Goblet Squat",    history:[] }
+  ],
+  nutrition:{ mealsTarget:4, week:[
+    {day:"Mon",hit:4},{day:"Tue",hit:4},{day:"Wed",hit:4},
+    {day:"Thu",hit:4},{day:"Fri",hit:4},{day:"Sat",hit:4},{day:"Sun",hit:4}
+  ]}
+};
+
+/* ---- helpers ---- */
+const e1rm=(w,r)=>w*(1+r/30);
+const round1=n=>Math.round(n*10)/10;
+const fmtDate=s=>new Date(s).toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+
+function sparkline(pts,{w=64,h=26,pad=3}={}){
+  if(pts.length<2)return`<svg class="spark" viewBox="0 0 ${w} ${h}"><line x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}" stroke="var(--line)" stroke-width="1.5"/></svg>`;
+  const mn=Math.min(...pts),mx=Math.max(...pts),sp=(mx-mn)||1;
+  const step=(w-pad*2)/(pts.length-1);
+  const c=pts.map((v,i)=>[pad+i*step,h-pad-((v-mn)/sp)*(h-pad*2)]);
+  const d=c.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const last=c[c.length-1];
+  return`<svg class="spark" viewBox="0 0 ${w} ${h}" fill="none"><path d="${d}" stroke="var(--gain)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.2" fill="var(--gain)"/></svg>`;
+}
+
+function render(D){
+  const bw=D.bodyweight, cur=bw[bw.length-1].kg, start=D.client.startWeight, goal=D.client.goalWeight;
+  const delta=round1(cur-start), pct=Math.max(0,Math.min(1,(cur-start)/(goal-start))), rem=round1(goal-cur);
+
+  /* lifts */
+  const liftsWithHistory=D.lifts.filter(l=>l.history.length>0);
+  const positionsHTML = liftsWithHistory.length===0
+    ? `<div style="padding:18px 0;font-family:var(--mono);font-size:11px;color:var(--ink-3);">Session data will appear after first workout.</div>`
+    : liftsWithHistory.map(l=>{
+        const h=l.history, latest=h[h.length-1], first=h[0];
+        const eNow=e1rm(latest.weight,latest.reps), eStart=e1rm(first.weight,first.reps);
+        const chg=round1(eNow-eStart), chgPct=eStart?(chg/eStart*100):0;
+        return`<div class="pos-row">
+          <div><div class="pos-name">${l.name}</div><div class="pos-detail">${latest.weight}kg &times; ${latest.reps}</div></div>
+          ${sparkline(h.map(s=>e1rm(s.weight,s.reps)))}
+          <div class="pos-figs"><div class="pos-e1rm">${round1(eNow)}<span class="muted"> e1rm</span></div>
+          <div class="pos-chg ${chg>=0?'pos':'neg'}">${chg>=0?'+':''}${chg} &middot; ${chg>=0?'+':''}${chgPct.toFixed(0)}%</div></div>
+        </div>`;
+      }).join('');
+
+  /* streak pips — one pip per week, gold star if double */
+  const totalWeeks=Math.max(D.streak.bestWeeks, D.streak.currentWeeks);
+  let pipsHTML='';
+  if(totalWeeks>0){
+    for(let i=1;i<=totalWeeks;i++){
+      const isDouble=D.streak.doubleWeeks&&D.streak.doubleWeeks.includes(i);
+      pipsHTML+=`<div class="pip ${isDouble?'double':'single'}">${isDouble?'★':''}</div>`;
+    }
+  }
+
+  /* sessions */
+  const bothDone=D.sessions.every(s=>s.done);
+  const sessionsHTML=D.sessions.map(s=>{
+    const dotClass=s.done?(bothDone?'double-dot':'done'):'open';
+    return`<div class="session"><span class="dot ${dotClass}"></span>
+      <div><div class="session-name">${s.name}</div>
+      <div class="session-state">${s.done?'Logged':'Open'}</div></div></div>`;
+  }).join('');
+
+  /* meals */
+  const T=D.nutrition.mealsTarget;
+  const totalHit=D.nutrition.week.reduce((a,d)=>a+d.hit,0);
+  const avg=round1(totalHit/D.nutrition.week.length);
+  const mealsHTML=D.nutrition.week.map(d=>{
+    const ph=Math.min(1,d.hit/T)*100, short=d.hit<T;
+    return`<div class="meal-col"><div class="meal-n">${d.hit}</div>
+      <div class="meal-track"><div class="meal-fill${short?' short':''}" style="height:${ph}%"></div></div>
+      <div class="meal-day">${d.day}</div></div>`;
+  }).join('');
+
+  /* video */
+  const v=D.weeklyVideo, hasEmbed=v.embedUrl&&v.embedUrl.length>4;
+  const videoInner=hasEmbed
+    ?`<iframe class="video-embed" src="${v.embedUrl}" allow="fullscreen" allowfullscreen></iframe>`
+    :`<div class="video-frame"><div class="play"></div></div>`;
+
+  document.getElementById('app').innerHTML=`
+    <header class="masthead">
+      <div class="masthead-row">
+        <span class="brand">Howe Wu &middot; Coaching</span>
+        <span class="period">Wk of ${fmtDate(D.asOf)}</span>
+      </div>
+      <div class="client-name">${D.client.name}</div>
+      <div class="client-sub">${D.client.heightCm}cm &middot; Bulk &middot; ${cur.toFixed(1)} &rarr; ${goal}kg</div>
+    </header>
+
+    <div class="sec-label">Bodyweight</div>
+    <div class="nav-card">
+      <div class="nav-top">
+        <div class="nav-figure">${cur.toFixed(1)}<span class="unit">kg</span></div>
+        <div class="nav-delta">
+          <span class="big ${delta>=0?'pos':'neg'}">${delta>=0?'+':''}${delta} kg</span>
+          <span class="muted">since start</span>
+        </div>
+      </div>
+      <div class="ledger-bar">
+        <div class="ledger-track"><div class="ledger-fill" id="fill"></div><div class="ledger-tick"></div></div>
+        <div class="ledger-ends"><span>${start}kg</span><span class="goal">${goal}kg &middot; ${rem}kg to go</span></div>
+      </div>
+    </div>
+
+    <div class="sec-label">Lifts &middot; estimated 1RM</div>
+    <div class="positions">${positionsHTML}</div>
+
+    <div class="sec-label">Consistency</div>
+    <div class="streak">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+          <span class="streak-fig">${D.streak.currentWeeks}</span>
+          <span class="streak-unit">week streak</span>
+        </div>
+        <div class="streak-best">Best &middot; ${D.streak.bestWeeks} weeks</div>
+      </div>
+      ${totalWeeks>0?`<div class="pips">${pipsHTML}</div>`:'<div style="font-family:var(--mono);font-size:10px;color:#A7A99F;letter-spacing:.1em;">★ = both sessions</div>'}
+    </div>
+    <div class="weekgrid">${sessionsHTML}</div>
+
+    <div class="sec-label">Fuel &middot; meals per day</div>
+    <div class="fuel-head">
+      <span class="fuel-avg">Target <strong>${T}</strong>/day</span>
+      <span class="fuel-avg">Avg <strong>${avg}</strong>/day</span>
+    </div>
+    <div class="meals">${mealsHTML}</div>
+
+    <div class="sec-label">From your coach</div>
+    <div class="coach">
+      <div class="coach-from">Howe</div>
+      <div class="coach-msg">${D.coachMessage}</div>
+    </div>
+
+    <div class="sec-label">Check-in</div>
+    <div class="video-wrap">
+      ${videoInner}
+      <div class="video-meta">
+        <span class="video-title">${v.title}</span>
+        <span class="video-date">${fmtDate(v.date)}</span>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(()=>{const f=document.getElementById('fill');if(f)f.style.width=(pct*100)+'%';});
+}
+
+render(DATA);
+
+/* coach panel */
+const ta=document.getElementById('json-input');
+ta.value=JSON.stringify(DATA,null,2);
+document.getElementById('apply').addEventListener('click',()=>{
+  const err=document.getElementById('err'); err.textContent='';
+  try{ render(JSON.parse(ta.value)); }
+  catch(e){ err.textContent='JSON error — '+e.message; }
+});
+</script>
+</body>
+</html>
