@@ -56,7 +56,6 @@
   .ledger-ends .goal{color:var(--ink);}
   .runrate{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);margin-top:12px;text-align:center;}
   .runrate strong{color:var(--ink);}
-  /* tabs */
   .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin:24px 0 4px;}
   .tab{flex:1;text-align:center;padding:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;border-radius:8px;cursor:pointer;color:var(--ink-3);user-select:none;}
   .tab.active{background:var(--ink);color:var(--paper);}
@@ -73,23 +72,21 @@
   .lift-log input{width:74px;font-family:var(--mono);font-size:13px;padding:7px 9px;border:1px solid var(--line-2);border-radius:7px;background:var(--inputbg);color:var(--ink);}
   .lift-log .x{font-family:var(--mono);color:var(--ink-3);}
   .mini-btn{font-family:var(--ui);font-weight:600;font-size:12px;padding:7px 13px;border-radius:7px;border:none;background:var(--gain);color:#fff;cursor:pointer;}
-  .next{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;}
-  .next-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
-  .next-title{font-family:var(--display);font-weight:600;font-size:20px;}
-  .next-tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gain);}
-  .next-lift{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px;}
-  .next-lift:last-child{border-bottom:none;}
-  .next-lift .target{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);}
-  .next-lift .target b{color:var(--gain);}
-  /* program / session descriptions */
   .prog{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:12px;}
-  .prog-name{font-family:var(--display);font-weight:600;font-size:19px;margin-bottom:6px;}
+  .prog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .prog-name{font-family:var(--display);font-weight:600;font-size:20px;}
+  .prog-tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gain);}
   .prog-desc{font-size:13.5px;color:var(--ink-2);line-height:1.55;}
+  .ex-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px;gap:12px;}
+  .ex-row:last-of-type{border-bottom:none;}
+  .ex-name{font-weight:600;}
+  .ex-scheme{font-family:var(--mono);font-size:12px;color:var(--ink-2);text-align:right;}
+  .ex-scheme b{color:var(--gain);font-weight:600;}
   .prog-vids{margin-top:14px;display:flex;flex-direction:column;gap:10px;}
   .vid{border:1px solid var(--line);border-radius:10px;overflow:hidden;}
   .vid-embed{aspect-ratio:16/9;width:100%;display:block;border:0;}
   .vid-label{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);padding:8px 12px;}
-  .vid-empty{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:10px;}
+  .vid-empty{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:12px;}
   .streak{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:var(--streakbg);color:var(--streakink);border-radius:12px;margin-bottom:12px;gap:14px;}
   .streak-fig{font-family:var(--display);font-weight:600;font-size:46px;line-height:.9;}
   .streak-unit{font-family:var(--ui);font-size:13px;font-weight:500;color:#A7A99F;}
@@ -185,33 +182,46 @@ var FIREBASE_CONFIG = {
 var FB_VERSION = "10.12.5";
 var CLIENT_ID = new URLSearchParams(location.search).get('c') || 'marximus';
 
+var NEW_COACH = "Start line is 60kg — 65 by spring, 70 by December. Bench stays lower weight — barbell if you're alone, DB if you aren't feeling your best. Your real opponent is week three, when the motivation dips. We build the autopilot before it shows up.";
+
 /* ===========================================================================
    2) COMMITTED SEED DATA — never put health conditions / sensitive notes here.
    =========================================================================== */
 var DATA = {
   client:{ name:"Marximus", startWeight:60.0, goalWeight:70.0, milestone:65, heightCm:175, startDate:"2026-06-23", targetDate:"2026-12-31" },
-  asOf:"2026-06-26",
+  asOf:"2026-06-28",
   streak:{ currentWeeks:0, bestWeeks:0, doubleWeeks:[] },
-  coachMessage:"Start line is 60kg — 65 by spring, 70 by December. Bench stays dumbbell-only when you're solo. Your real opponent is week three, when the motivation dips. We build the autopilot before it shows up.",
+  coachMessage:NEW_COACH,
   nextSession:"Upper",
   bodyweight:[ { date:"2026-06-23", kg:60.0 } ],
   sessions:[
     { name:"Upper", done:false,
-      description:"Push and pull for the upper body. 3 sets per exercise, 8–12 reps, ~90s rest. Add a rep each week; when you reach 12 clean, add load. Bench stays dumbbell when training alone.",
-      videos:[] },
+      description:"Push and pull for the upper body. 3 sets per exercise, ~90s rest. Add a rep each week; when you top the range clean, add load. Bench: lighter barbell when alone, DB when you're not feeling your best.",
+      exercises:[
+        {name:"Barbell Bench Press", scheme:"3 × 6–10"},
+        {name:"Pull-ups",            scheme:"3 × AMRAP"},
+        {name:"DB Overhead Press",   scheme:"3 × 8–12"},
+        {name:"Lateral Raises",      scheme:"3 × 12–15"},
+        {name:"Push-ups",            scheme:"3 × AMRAP"},
+        {name:"Bicep Curl",          scheme:"3 × 10–12"}
+      ], videos:[] },
     { name:"Lower + Abs", done:false,
-      description:"Legs first, then 3 rounds of abs to finish. 3 sets, 8–12 reps. Control the lowering phase. Abs: slow and full range over speed.",
-      videos:[] }
+      description:"Big compounds first, abs to finish. 3 sets, control the lowering phase. Abs are slow and full-range — no momentum.",
+      exercises:[
+        {name:"Barbell Deadlift",    scheme:"3 × 5–8"},
+        {name:"Goblet Squat",        scheme:"3 × 8–12"},
+        {name:"DB Lunges",           scheme:"3 × 10 / leg"},
+        {name:"Hanging Leg Raises",  scheme:"3 × 10–15"},
+        {name:"Russian Twists",      scheme:"3 × 20"}
+      ], videos:[] }
   ],
   lifts:[
-    { name:"DB Bench Press",   session:"Upper", history:[ {date:"2026-06-23",weight:8,reps:10} ] },
-    { name:"DB Overhead Press",session:"Upper", history:[] },
-    { name:"DB Bicep Curl",    session:"Upper", history:[ {date:"2026-06-23",weight:9,reps:10} ] },
-    { name:"Pull-ups",         session:"Upper", bodyweight:true, history:[ {date:"2026-06-23",reps:3} ] },
-    { name:"Push-ups",         session:"Upper", bodyweight:true, history:[ {date:"2026-06-23",reps:15} ] },
-    { name:"DB Deadlift",      session:"Lower", history:[ {date:"2026-06-23",weight:16,reps:10} ] },
-    { name:"Goblet Squat",     session:"Lower", history:[] },
-    { name:"DB Lunges",        session:"Lower", history:[] }
+    { name:"Barbell Bench Press", session:"Upper", history:[] },
+    { name:"Pull-ups",            session:"Upper", bodyweight:true, history:[ {date:"2026-06-23",reps:3} ] },
+    { name:"Barbell Deadlift",    session:"Lower", history:[] },
+    { name:"DB Overhead Press",   session:"Upper", history:[] },
+    { name:"DB Lunges",           session:"Lower", history:[] },
+    { name:"Goblet Squat",        session:"Lower", history:[] }
   ],
   nutrition:{ mealsTarget:4, week:[
     {day:"Mon",hit:4},{day:"Tue",hit:4},{day:"Wed",hit:4},{day:"Thu",hit:4},{day:"Fri",hit:4},{day:"Sat",hit:4},{day:"Sun",hit:4}
@@ -219,17 +229,42 @@ var DATA = {
   habit:{ name:"Train abs on wake-up", history:[] }
 };
 
-/* migrate: backfill new fields onto data coming from an older Firestore doc */
+/* desired tracked lifts (order matters) */
+var DESIRED_LIFTS=[
+  {name:"Barbell Bench Press", session:"Upper"},
+  {name:"Pull-ups",            session:"Upper", bodyweight:true},
+  {name:"Barbell Deadlift",    session:"Lower"},
+  {name:"DB Overhead Press",   session:"Upper"},
+  {name:"DB Lunges",           session:"Lower"},
+  {name:"Goblet Squat",        session:"Lower"}
+];
+function reshapeLifts(oldLifts){
+  oldLifts=oldLifts||[];
+  return DESIRED_LIFTS.map(function(d){
+    var m=oldLifts.find(function(o){return o.name===d.name;});
+    var lift={name:d.name, session:d.session, history:(m&&m.history)?m.history:[]};
+    if(d.bodyweight) lift.bodyweight=true;
+    return lift;
+  });
+}
+
+/* migrate: reshape lifts, backfill session exercises/descriptions, rename habit, refresh coach default */
 function migrate(s){
   if(!s.client) s.client={};
   if(!s.client.targetDate) s.client.targetDate=DATA.client.targetDate;
+  s.lifts=reshapeLifts(s.lifts);
   if(Array.isArray(s.sessions)){
     s.sessions.forEach(function(ses){
       var seed=DATA.sessions.find(function(x){return x.name===ses.name;});
-      if(seed){ if(ses.description===undefined) ses.description=seed.description; if(ses.videos===undefined) ses.videos=seed.videos.slice(); }
+      if(seed){
+        if(!ses.description) ses.description=seed.description;
+        if(ses.videos===undefined) ses.videos=seed.videos.slice();
+        if(!ses.exercises || !ses.exercises.length) ses.exercises=JSON.parse(JSON.stringify(seed.exercises));
+      }
     });
   }
   if(s.habit){ if(!s.habit.name || s.habit.name==='Bed before 1am') s.habit.name=DATA.habit.name; }
+  if(s.coachMessage && s.coachMessage.indexOf("dumbbell-only when you're solo")>=0) s.coachMessage=NEW_COACH;
   return s;
 }
 
@@ -263,7 +298,6 @@ function sparkline(pts,opt){
 
 var ui={ editWeight:false, logLift:null };
 function isEditing(){ return ui.editWeight||ui.logLift!==null; }
-
 function habitCurrentWeek(){
   var map={}; state.habit.history.forEach(function(h){map[h.date]=h;}); var out=[];
   for(var i=6;i>=0;i--){ var d=new Date(); d.setDate(d.getDate()-i); var ds=d.toISOString().slice(0,10);
@@ -276,7 +310,7 @@ function setHabit(date,hit){
   state.habit.history.sort(function(a,b){return a.date<b.date?-1:1;});
 }
 
-/* ----- section builders ----- */
+/* ----- builders ----- */
 function buildLifts(){
   var D=state;
   return '<div class="sec-label">Lifts<span class="edit-hint">tap a row to log</span></div><div class="positions">'+
@@ -312,30 +346,24 @@ function buildLifts(){
   }).join('')+'</div>';
 }
 
-function buildNext(){
-  var D=state, ns=D.nextSession||'Upper';
-  var rows=D.lifts.filter(function(l){return l.session===ns;}).map(function(l){
-    var h=l.history,last=h.length?h[h.length-1]:null;
-    var tgt='first session — find your working weight';
-    if(last){ tgt=l.bodyweight?('beat <b>'+last.reps+' reps</b>'):('beat <b>'+last.weight+'kg &times; '+last.reps+'</b>'); }
-    return '<div class="next-lift"><span>'+l.name+'</span><span class="target">'+tgt+'</span></div>';
-  }).join('');
-  return '<div class="sec-label">Next session</div><div class="next"><div class="next-head"><span class="next-title">'+ns+'</span><span class="next-tag">Up next</span></div>'+rows+'</div>';
-}
-
 function buildPrograms(){
   var D=state;
-  return '<div class="sec-label">Sessions &amp; demos</div>'+
+  return '<div class="sec-label">Sessions</div>'+
   D.sessions.map(function(ses){
-    var vids='';
-    if(ses.videos && ses.videos.length){
-      vids='<div class="prog-vids">'+ses.videos.map(function(v){
-        return '<div class="vid"><iframe class="vid-embed" src="'+v.url+'" allow="fullscreen" allowfullscreen></iframe>'+(v.label?'<div class="vid-label">'+v.label+'</div>':'')+'</div>';
-      }).join('')+'</div>';
-    } else {
-      vids='<div class="vid-empty">Exercise demos coming soon.</div>';
-    }
-    return '<div class="prog"><div class="prog-name">'+ses.name+'</div><div class="prog-desc">'+(ses.description||'')+'</div>'+vids+'</div>';
+    var isNext=(ses.name===D.nextSession);
+    var exs=(ses.exercises||[]).map(function(ex){
+      var tracked=D.lifts.find(function(l){return l.name===ex.name;});
+      var note='';
+      if(tracked && tracked.history.length){
+        var last=tracked.history[tracked.history.length-1];
+        note=tracked.bodyweight?('last '+last.reps+' reps'):('last '+last.weight+'kg × '+last.reps);
+      }
+      return '<div class="ex-row"><span class="ex-name">'+ex.name+'</span><span class="ex-scheme">'+(ex.scheme||'')+(note?' · <b>'+note+'</b>':'')+'</span></div>';
+    }).join('');
+    var vids=(ses.videos&&ses.videos.length)
+      ? '<div class="prog-vids">'+ses.videos.map(function(v){return '<div class="vid"><iframe class="vid-embed" src="'+v.url+'" allow="fullscreen" allowfullscreen></iframe>'+(v.label?'<div class="vid-label">'+v.label+'</div>':'')+'</div>';}).join('')+'</div>'
+      : '<div class="vid-empty">Exercise demos coming soon.</div>';
+    return '<div class="prog"><div class="prog-head"><span class="prog-name">'+ses.name+'</span>'+(isNext?'<span class="prog-tag">Up next</span>':'')+'</div><div class="prog-desc">'+(ses.description||'')+'</div><div style="margin-top:12px;">'+exs+'</div>'+vids+'</div>';
   }).join('');
 }
 
@@ -366,7 +394,6 @@ function render(){
   var delta=round1(cur-start), pct=Math.max(0,Math.min(1,(cur-start)/(goal-start))), rem=round1(goal-cur);
   var milePct=D.client.milestone?Math.max(0,Math.min(1,(D.client.milestone-start)/(goal-start)))*100:null;
   var target=D.client.targetDate;
-
   var runrate='';
   if(bw.length>=2){
     var f=bw[0],l=bw[bw.length-1],days=(new Date(l.date)-new Date(f.date))/86400000;
@@ -375,19 +402,15 @@ function render(){
       var onPace=eta<=new Date(target);
       runrate='Run rate <strong>+'+round1(perWk)+'kg/wk</strong> &middot; projected '+monthYr(eta)+' &middot; '+(onPace?'<span class="pos">on pace</span>':'<span class="neg">behind Dec target</span>');
     } else { runrate='Scale flat — if the meals are full, they need to be bigger.'; }
-  } else {
-    runrate='Target <strong>'+goal+'kg by '+monthYr(target)+'</strong>';
-  }
-
-  var consistency = currentTab==='consistency';
+  } else { runrate='Target <strong>'+goal+'kg by '+monthYr(target)+'</strong>'; }
+  var consistency=currentTab==='consistency';
 
   document.getElementById('app').innerHTML=
     '<header class="masthead"><div class="masthead-row"><span class="brand">Howe Wu &middot; Coaching</span>'
-    +'<span class="mast-right"><button class="theme-btn" id="theme" title="Toggle theme">'+(document.body.classList.contains('dark')?'☀':'☾')+'</button>'
-    +'<span class="status'+(cloud?' live':'')+'" id="status"><span class="led"></span><span>'+(cloud?'live sync':'on-device')+'</span></span></span></div>'
+    +'<span class="mast-right"><button class="theme-btn" id="theme" data-act="theme" title="Toggle theme">'+(document.body.classList.contains('dark')?'☀':'☾')+'</button>'
+    +'<span class="status'+(cloud?' live':'')+'"><span class="led"></span><span>'+(cloud?'live sync':'on-device')+'</span></span></span></div>'
     +'<div class="client-name">'+D.client.name+'</div>'
     +'<div class="client-sub">'+D.client.heightCm+'cm &middot; Bulk &middot; '+cur.toFixed(1)+' &rarr; '+goal+'kg by '+new Date(target).toLocaleDateString('en-AU',{month:'short'})+'</div></header>'
-
     +'<div class="sec-label">Bodyweight<span class="edit-hint">tap to edit</span></div><div class="nav-top">'
     +(ui.editWeight?'<input class="nav-input" id="bw-input" type="number" inputmode="decimal" value="'+cur+'" />':'<div class="nav-figure" data-act="editweight">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
     +'<div class="nav-delta"><span class="big '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+delta+' kg</span><span class="muted">since start</span></div></div>'
@@ -395,11 +418,8 @@ function render(){
     +(milePct!==null?'<div class="ledger-mile" style="left:'+milePct+'%"><span>'+D.client.milestone+'</span></div>':'')
     +'<div class="ledger-tick"></div></div><div class="ledger-ends"><span>'+start+'kg</span><span class="goal">'+goal+'kg &middot; '+rem+'kg to go</span></div></div>'
     +(runrate?'<div class="runrate">'+runrate+'</div>':'')
-
     +'<div class="tabs"><div class="tab'+(consistency?' active':'')+'" data-act="tab" data-tab="consistency">Consistency</div><div class="tab'+(!consistency?' active':'')+'" data-act="tab" data-tab="training">Training</div></div>'
-
-    +(consistency ? buildConsistency() : (buildLifts()+buildNext()+buildPrograms()))
-
+    +(consistency ? buildConsistency() : (buildLifts()+buildPrograms()))
     +'<div class="sec-label">From your coach</div><div class="coach"><div class="coach-from">Howe</div><div class="coach-msg">'+D.coachMessage+'</div></div>'
     +'<div class="updated">Last updated '+fmtDate(D.asOf)+'</div>';
 
@@ -453,7 +473,6 @@ var cloud=false, docRef=null, fb=null, pendingSnap=null, writeTimer=null;
 function applyPendingOrRender(){ if(pendingSnap){ state=migrate(pendingSnap); pendingSnap=null; saveLocal(); } render(); }
 function pushCloud(){ if(docRef&&fb) fb.setDoc(docRef,state).catch(function(){}); }
 function persist(){ saveLocal(); if(cloud){ clearTimeout(writeTimer); writeTimer=setTimeout(pushCloud,300); } }
-
 function initCloud(){
   if(!FIREBASE_CONFIG.apiKey) return;
   var base='https://www.gstatic.com/firebasejs/'+FB_VERSION+'/';
