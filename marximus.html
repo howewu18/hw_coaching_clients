@@ -168,6 +168,20 @@
   textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:11px;line-height:1.5;padding:12px;border:1px solid var(--line-2);border-radius:8px;background:var(--inputbg);color:var(--ink);resize:vertical;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:11px 18px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90%;text-align:center;}
   .toast.show{opacity:1;}
+
+  .recipe-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;}
+  .recipe-title{font-family:var(--display);font-weight:600;font-size:19px;margin-bottom:4px;}
+  .recipe-meta{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-bottom:14px;}
+  .ing-list{list-style:none;margin-bottom:14px;}
+  .ing-list li{font-size:13.5px;color:var(--ink-2);padding:5px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;}
+  .ing-list li:last-child{border-bottom:none;}
+  .ing-qty{font-family:var(--mono);font-size:12px;color:var(--ink-3);}
+  .kcal-strip{display:flex;gap:10px;margin-top:4px;}
+  .kcal-box{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 12px;text-align:center;}
+  .kcal-num{font-family:var(--display);font-weight:600;font-size:22px;}
+  .kcal-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:2px;}
+  .kcal-compare{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:12px;text-align:center;}
+  .kcal-compare b{color:var(--gain);}
   @media(prefers-reduced-motion:reduce){.ledger-fill,.meal-fill{transition:none;}}
 </style>
 </head>
@@ -247,6 +261,33 @@ var DATA = {
     { name:"Goblet Squat",      session:"Lower", history:[] },
     { name:"DB Lunges",         session:"Lower", history:[] }
   ],
+  recipe:{
+    title:"Japanese Beef Curry",
+    servings:5,
+    updated:"2026-07-06",
+    ingredients:[
+      {name:"Beef mince (3 star)", qty:"800g"},
+      {name:"Onion", qty:"1"},
+      {name:"Garlic cloves", qty:"2 large"},
+      {name:"Ginger", qty:"1 thumb"},
+      {name:"Potatoes", qty:"2"},
+      {name:"S&B Japanese curry", qty:"1.5 boxes"},
+      {name:"Rice or noodles", qty:"to serve — noodles for extra calories"}
+    ],
+    kcalPerServing:980, proteinPerServing:30, noodleKcal:1040,
+    compareLabel:"Soul Origin Grilled Chicken Panini", compareKcal:540,
+    water:"~1.2L (about 800ml per box of curry roux)",
+    directions:[
+      "Prep: dice the onion, mince the garlic, grate the ginger, peel and cube the potatoes into bite-size chunks.",
+      "Heat a large pot on medium-high with a splash of oil. Add the mince and break it apart with a spoon. Cook ~5–7 min until browned all over — no pink left.",
+      "Add the onion, garlic and ginger to the pot. Stir and cook ~3–4 min until the onion turns soft and translucent.",
+      "Add the potatoes and the water (~1.2L). Stir, bring to a boil, then drop to a simmer, lid on, for ~15 min — until a fork slides into the potato easily.",
+      "Turn the heat off. Break the curry roux blocks (1.5 boxes) into the pot and stir until fully dissolved — no lumps.",
+      "Turn heat back to low, simmer uncovered ~5 min, stirring now and then, until it thickens to a gravy consistency.",
+      "Too thick? Splash in a bit more water. Too thin? Simmer a few more minutes.",
+      "Serve over rice — or noodles for the extra calories. Split into 5 containers for the week."
+    ]
+  },
   nutrition:{ mealsTarget:4, week:[
     {day:"Mon",hit:4},{day:"Tue",hit:3},{day:"Wed",hit:4},{day:"Thu",hit:3},{day:"Fri",hit:4},{day:"Sat",hit:3},{day:"Sun",hit:4}
   ]},
@@ -319,6 +360,12 @@ function migrate(s){
   if(!Array.isArray(s.checkins)) s.checkins=[];
   DATA.checkins.forEach(function(c){ if(!s.checkins.some(function(x){return x.week===c.week;})) s.checkins.push(c); });
   s.checkins.sort(function(a,b){return a.week-b.week;});
+  if(!s.recipe) s.recipe=structuredClone(DATA.recipe);
+  else {
+    if(s.recipe.noodleKcal===undefined) s.recipe.noodleKcal=DATA.recipe.noodleKcal;
+    if(!s.recipe.water) s.recipe.water=DATA.recipe.water;
+    if(!s.recipe.directions||!s.recipe.directions.length) s.recipe.directions=DATA.recipe.directions.slice();
+  }
   if(!s.nextSession) s.nextSession=DATA.nextSession;
   if(new Date(DATA.asOf)>new Date(s.asOf||0)) s.asOf=DATA.asOf;
   return s;
@@ -441,13 +488,38 @@ function coachCard(text,label){
 }
 
 /* ----- Consistency tab ----- */
+
+function buildRecipe(){
+  var r=state.recipe; if(!r) return '';
+  var ing=r.ingredients.map(function(i){return '<li><span>'+esc(i.name)+'</span><span class="ing-qty">'+esc(i.qty)+'</span></li>';}).join('');
+  var delta=r.compareKcal?Math.round((r.kcalPerServing/r.compareKcal)*10)/10:null;
+  var directionsHtml='';
+  if(r.directions&&r.directions.length){
+    directionsHtml='<ol style="padding-left:18px;display:flex;flex-direction:column;gap:9px;">'
+      +r.directions.map(function(step){return '<li style="font-size:13px;color:var(--ink-2);line-height:1.5;">'+esc(step)+'</li>';}).join('')
+      +'</ol>';
+    if(r.water) directionsHtml='<div style="font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-bottom:12px;">💧 Water: <b style="color:var(--ink);">'+esc(r.water)+'</b></div>'+directionsHtml;
+  }
+  return '<div class="sec-label">Recipe of the week</div><div class="recipe-card">'
+    +'<div class="recipe-title">'+esc(r.title)+'</div>'
+    +'<div class="recipe-meta">Makes '+r.servings+' servings &middot; updated '+fmtDate(r.updated)+'</div>'
+    +'<ul class="ing-list">'+ing+'</ul>'
+    +'<div class="kcal-strip"><div class="kcal-box"><div class="kcal-num">'+r.kcalPerServing+'</div><div class="kcal-label">kcal / serving &middot; rice</div></div>'
+    +'<div class="kcal-box"><div class="kcal-num">'+r.proteinPerServing+'g</div><div class="kcal-label">protein / serving</div></div></div>'
+    +(r.noodleKcal?'<div class="kcal-compare">With noodles instead of rice: <b>~'+r.noodleKcal+' kcal</b> (+'+(r.noodleKcal-r.kcalPerServing)+')</div>':'')
+    +(r.compareLabel?'<div class="kcal-compare">vs '+esc(r.compareLabel)+' ('+r.compareKcal+' kcal) &middot; <b>'+delta+'&times; the calories</b></div>':'')
+    +(directionsHtml?expander('recipe-dir','how to cook this',directionsHtml):'')
+    +'</div>';
+}
+
 function buildConsistency(){
   var D=state, cks=D.checkins||[];
   var bw=D.bodyweight, cur=bw[bw.length-1].kg, start=D.client.startWeight, goal=D.client.goalWeight;
   var delta=round1(cur-start), pct=Math.max(0,Math.min(1,(cur-start)/(goal-start))), rem=round1(goal-cur);
   var milePct=D.client.milestone?Math.max(0,Math.min(1,(D.client.milestone-start)/(goal-start)))*100:null;
 
-  var out='<div class="sec-label">Bodyweight<span class="edit-hint">tap to edit</span></div><div class="nav-top">'
+  var out=buildRecipe();
+  out+='<div class="sec-label">Bodyweight<span class="edit-hint">tap to edit</span></div><div class="nav-top">'
     +(ui.editWeight?'<input class="nav-input" id="bw-input" type="number" inputmode="decimal" value="'+cur+'" />':'<div class="nav-figure" data-act="editweight">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
     +'<div class="nav-delta"><span class="big '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+delta+' kg</span><span class="muted">since start</span></div></div>'
     +'<div class="ledger-bar"><div class="ledger-track"><div class="ledger-fill" id="fill" data-pct="'+(pct*100)+'"></div>'
