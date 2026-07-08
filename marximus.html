@@ -144,6 +144,29 @@
   textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:11px;line-height:1.5;padding:12px;border:1px solid var(--line-2);border-radius:8px;background:var(--inputbg);color:var(--ink);resize:vertical;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:11px 18px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90%;text-align:center;}
   .toast.show{opacity:1;}
+
+  /* progress tab */
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 10px;margin-bottom:14px;}
+  .chart-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;display:flex;justify-content:space-between;}
+  .bw-chart{width:100%;height:auto;display:block;}
+  .ck-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .ck-table th{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);text-align:right;padding:6px 4px;border-bottom:1px solid var(--line-2);font-weight:500;}
+  .ck-table th:first-child{text-align:left;}
+  .ck-table td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono);font-size:12px;}
+  .ck-table td:first-child{text-align:left;font-family:var(--ui);font-weight:600;}
+  .ck-week{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);}
+  .ck-week summary{cursor:pointer;list-style:none;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;}
+  .ck-week summary::-webkit-details-marker{display:none;}
+  .ck-week[open] summary{border-bottom:1px solid var(--line);}
+  .ck-wk-name{font-weight:600;font-size:14px;}
+  .ck-wk-meta{font-family:var(--mono);font-size:11px;color:var(--ink-2);}
+  .ck-body{padding:13px 15px;}
+  .ck-stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px;}
+  .ck-stat-row:last-child{border-bottom:none;}
+  .ck-stat-label{color:var(--ink-2);}
+  .ck-stat-val{font-family:var(--mono);font-weight:600;}
+  .ck-note{font-size:13px;color:var(--ink-2);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+  .ck-note b{color:var(--ink);}
   @media(prefers-reduced-motion:reduce){.ledger-fill,.meal-fill{transition:none;}}
 </style>
 </head>
@@ -226,7 +249,8 @@ var DATA = {
   nutrition:{ mealsTarget:4, week:[
     {day:"Mon",hit:4},{day:"Tue",hit:4},{day:"Wed",hit:4},{day:"Thu",hit:4},{day:"Fri",hit:4},{day:"Sat",hit:4},{day:"Sun",hit:4}
   ]},
-  habit:{ name:"Train abs on wake-up", history:[] }
+  habit:{ name:"Train abs on wake-up", history:[] },
+  checkins:[]
 };
 
 /* desired tracked lifts (order matters) */
@@ -265,6 +289,7 @@ function migrate(s){
   }
   if(s.habit){ if(!s.habit.name || s.habit.name==='Bed before 1am') s.habit.name=DATA.habit.name; }
   if(s.coachMessage && s.coachMessage.indexOf("dumbbell-only when you're solo")>=0) s.coachMessage=NEW_COACH;
+  if(!Array.isArray(s.checkins)) s.checkins=[];
   return s;
 }
 
@@ -367,6 +392,74 @@ function buildPrograms(){
   }).join('');
 }
 
+
+function bwChart(){
+  var bw=state.bodyweight;
+  var W=480,H=180,padL=38,padR=14,padT=16,padB=26;
+  if(bw.length<2) return '<div class="empty-hint">Chart appears after the second weigh-in.</div>';
+  var goal=state.client.goalWeight, start=state.client.startWeight;
+  var kgs=bw.map(function(b){return b.kg;});
+  var mn=Math.min.apply(null,kgs.concat([start]))-0.5, mx=Math.max.apply(null,kgs.concat([goal]))+0.5;
+  var t0=new Date(bw[0].date).getTime(), t1=new Date(bw[bw.length-1].date).getTime(); if(t1===t0)t1=t0+1;
+  function X(d){return padL+((new Date(d).getTime()-t0)/(t1-t0))*(W-padL-padR);}
+  function Y(v){return padT+(1-(v-mn)/(mx-mn))*(H-padT-padB);}
+  var pts=bw.map(function(b){return [X(b.date),Y(b.kg)];});
+  var path=pts.map(function(p,i){return (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' ');
+  var gl=Y(goal), ml=state.client.milestone?Y(state.client.milestone):null;
+  var yticks='';
+  [mn+0.5,(mn+mx)/2,mx-0.5].forEach(function(v){
+    yticks+='<text x="'+(padL-6)+'" y="'+(Y(v)+3)+'" text-anchor="end" font-size="9" fill="var(--ink-3)" font-family="IBM Plex Mono">'+v.toFixed(1)+'</text>';
+    yticks+='<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="var(--line)" stroke-width="1"/>';
+  });
+  var dots=pts.map(function(p){return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="2.6" fill="var(--gain)"/>';}).join('');
+  var x0=fmtDate(bw[0].date), x1=fmtDate(bw[bw.length-1].date);
+  return '<svg class="bw-chart" viewBox="0 0 '+W+' '+H+'" fill="none">'
+    +yticks
+    +'<line x1="'+padL+'" y1="'+gl+'" x2="'+(W-padR)+'" y2="'+gl+'" stroke="var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>'
+    +'<text x="'+(W-padR)+'" y="'+(gl-4)+'" text-anchor="end" font-size="9" fill="var(--ink-2)" font-family="IBM Plex Mono">goal '+goal+'</text>'
+    +(ml!==null?'<line x1="'+padL+'" y1="'+ml+'" x2="'+(W-padR)+'" y2="'+ml+'" stroke="var(--gold)" stroke-width="1" stroke-dasharray="3 4"/><text x="'+(W-padR)+'" y="'+(ml-4)+'" text-anchor="end" font-size="9" fill="var(--gold)" font-family="IBM Plex Mono">'+state.client.milestone+'</text>':'')
+    +'<path d="'+path+'" stroke="var(--gain)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+dots
+    +'<text x="'+padL+'" y="'+(H-8)+'" font-size="9" fill="var(--ink-3)" font-family="IBM Plex Mono">'+x0+'</text>'
+    +'<text x="'+(W-padR)+'" y="'+(H-8)+'" text-anchor="end" font-size="9" fill="var(--ink-3)" font-family="IBM Plex Mono">'+x1+'</text>'
+    +'</svg>';
+}
+
+function buildProgress(){
+  var D=state, cks=(D.checkins||[]).slice().sort(function(a,b){return a.week-b.week;});
+  var out='<div class="sec-label">Bodyweight &middot; all data</div><div class="chart-card">'+bwChart()+'</div>';
+  out+='<div class="sec-label">Weekly check-ins</div>';
+  if(!cks.length){
+    out+='<div class="empty-hint">First check-in lands after your week-1 call.</div>';
+    return out;
+  }
+  /* summary table */
+  out+='<div class="chart-card"><table class="ck-table"><tr><th>Wk</th><th>Kg</th><th>&Delta;</th><th>Sess</th><th>Meals</th><th>Habit</th></tr>';
+  cks.forEach(function(c,idx){
+    var prev=idx>0?cks[idx-1].weightAvg:D.client.startWeight;
+    var d=c.weightAvg!=null?round1(c.weightAvg-prev):null;
+    out+='<tr><td>W'+c.week+'</td><td>'+(c.weightAvg!=null?c.weightAvg.toFixed(1):'—')+'</td>'
+      +'<td class="'+(d>=0?'pos':'neg')+'">'+(d!=null?((d>=0?'+':'')+d):'—')+'</td>'
+      +'<td>'+(c.sessionsDone!=null?(c.sessionsDone+'/'+(c.sessionsPlanned||2)):'—')+'</td>'
+      +'<td>'+(c.mealsAvg!=null?c.mealsAvg:'—')+'</td>'
+      +'<td>'+(c.habitRate!=null?(c.habitRate+'%'):'—')+'</td></tr>';
+  });
+  out+='</table></div>';
+  /* expandable weekly cards, newest first */
+  cks.slice().reverse().forEach(function(c){
+    out+='<details class="ck-week"><summary><span class="ck-wk-name">Week '+c.week+'</span><span class="ck-wk-meta">'+fmtDate(c.date)+(c.weightAvg!=null?' &middot; '+c.weightAvg.toFixed(1)+'kg':'')+'</span></summary><div class="ck-body">'
+      +(c.weightAvg!=null?'<div class="ck-stat-row"><span class="ck-stat-label">Avg bodyweight</span><span class="ck-stat-val">'+c.weightAvg.toFixed(1)+'kg</span></div>':'')
+      +(c.sessionsDone!=null?'<div class="ck-stat-row"><span class="ck-stat-label">Sessions</span><span class="ck-stat-val">'+c.sessionsDone+'/'+(c.sessionsPlanned||2)+'</span></div>':'')
+      +(c.mealsAvg!=null?'<div class="ck-stat-row"><span class="ck-stat-label">Meals avg / day</span><span class="ck-stat-val">'+c.mealsAvg+'</span></div>':'')
+      +(c.habitRate!=null?'<div class="ck-stat-row"><span class="ck-stat-label">'+(D.habit.name||'Habit')+'</span><span class="ck-stat-val">'+c.habitRate+'%</span></div>':'')
+      +(c.sleep?'<div class="ck-stat-row"><span class="ck-stat-label">Sleep</span><span class="ck-stat-val">'+c.sleep+'</span></div>':'')
+      +(c.wins?'<div class="ck-note"><b>Wins:</b> '+c.wins+'</div>':'')
+      +(c.flags?'<div class="ck-note"><b>Watch:</b> '+c.flags+'</div>':'')
+      +(c.focus?'<div class="ck-note"><b>Next week:</b> '+c.focus+'</div>':'')
+      +'</div></details>';
+  });
+  return out;
+}
+
 function buildConsistency(){
   var D=state;
   var totalWeeks=Math.max(D.streak.bestWeeks,D.streak.currentWeeks), pips='';
@@ -418,8 +511,8 @@ function render(){
     +(milePct!==null?'<div class="ledger-mile" style="left:'+milePct+'%"><span>'+D.client.milestone+'</span></div>':'')
     +'<div class="ledger-tick"></div></div><div class="ledger-ends"><span>'+start+'kg</span><span class="goal">'+goal+'kg &middot; '+rem+'kg to go</span></div></div>'
     +(runrate?'<div class="runrate">'+runrate+'</div>':'')
-    +'<div class="tabs"><div class="tab'+(consistency?' active':'')+'" data-act="tab" data-tab="consistency">Consistency</div><div class="tab'+(!consistency?' active':'')+'" data-act="tab" data-tab="training">Training</div></div>'
-    +(consistency ? buildConsistency() : (buildLifts()+buildPrograms()))
+    +'<div class="tabs"><div class="tab'+(currentTab==='consistency'?' active':'')+'" data-act="tab" data-tab="consistency">Consistency</div><div class="tab'+(currentTab==='training'?' active':'')+'" data-act="tab" data-tab="training">Training</div><div class="tab'+(currentTab==='progress'?' active':'')+'" data-act="tab" data-tab="progress">Progress</div></div>'
+    +(currentTab==='consistency' ? buildConsistency() : (currentTab==='training' ? (buildLifts()+buildPrograms()) : buildProgress()))
     +'<div class="sec-label">From your coach</div><div class="coach"><div class="coach-from">Howe</div><div class="coach-msg">'+D.coachMessage+'</div></div>'
     +'<div class="updated">Last updated '+fmtDate(D.asOf)+'</div>';
 
