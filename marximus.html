@@ -407,8 +407,8 @@ function weeklyChart(rows,valueFn,opts){
   var vmax=Math.max.apply(null,pts.map(function(p){return p.v;}));
   if(opts.target) vmax=Math.max(vmax,opts.target);
   vmax=vmax*1.15||1;
-  var wmin=pts[0].w, wmax=pts[pts.length-1].w, span=Math.max(1,wmax-wmin);
-  function X(w){ return pts.length===1 ? (padL+(W-padL-padR)/2) : padL+((w-wmin)/span)*(W-padL-padR); }
+  /* evenly space by index, not by week number, so gaps between logged weeks don't stretch the axis */
+  function Xi(i){ return pts.length===1 ? (padL+(W-padL-padR)/2) : padL+(i/(pts.length-1))*(W-padL-padR); }
   function Y(v){ return padT+(1-v/vmax)*(H-padT-padB); }
   var out='<svg class="wchart" viewBox="0 0 '+W+' '+H+'" fill="none">';
   [vmax*0.5,vmax].forEach(function(v){
@@ -421,18 +421,18 @@ function weeklyChart(rows,valueFn,opts){
   }
   if(opts.mode==='bars'){
     var bw=Math.min(34,(W-padL-padR)/(pts.length*1.8));
-    pts.forEach(function(p){
-      var x=X(p.w)-bw/2, y=Y(p.v);
+    pts.forEach(function(p,i){
+      var x=Xi(i)-bw/2, y=Y(p.v);
       out+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw+'" height="'+(H-padB-y).toFixed(1)+'" rx="3" fill="'+(opts.target&&p.v>=opts.target?'var(--gold)':'var(--gain)')+'"/>';
     });
   } else {
     if(pts.length>1){
-      var d=pts.map(function(p,i){return (i?'L':'M')+X(p.w).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ');
+      var d=pts.map(function(p,i){return (i?'L':'M')+Xi(i).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ');
       out+='<path d="'+d+'" stroke="var(--gain)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
     }
-    pts.forEach(function(p){ out+='<circle cx="'+X(p.w).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="3" fill="var(--gain)"/>'; });
+    pts.forEach(function(p,i){ out+='<circle cx="'+Xi(i).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="3" fill="var(--gain)"/>'; });
   }
-  pts.forEach(function(p){ out+='<text x="'+X(p.w).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="var(--ink-3)" font-family="IBM Plex Mono">W'+p.w+'</text>'; });
+  pts.forEach(function(p,i){ out+='<text x="'+Xi(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="var(--ink-3)" font-family="IBM Plex Mono">W'+p.w+'</text>'; });
   out+='</svg>';
   if(pts.length===1) out+='<div class="exp-note">One check-in so far — trend appears from week 2.</div>';
   return out;
