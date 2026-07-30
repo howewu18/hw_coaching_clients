@@ -56,13 +56,11 @@
   .ledger-mile span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--gold);}
   .ledger-ends{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
   .ledger-ends .goal{color:var(--ink);}
-  /* expander */
   .expander{margin-top:12px;}
   .exp-btn{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);border:1px dashed var(--line-2);border-radius:8px;padding:9px 12px;text-align:center;cursor:pointer;user-select:none;}
   .exp-body{margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;}
   .exp-note{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-align:center;padding:6px 0 8px;}
   .wchart{width:100%;height:auto;display:block;}
-  /* week sessions */
   .weekcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
   .week-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
   .week-title{font-weight:600;font-size:15px;}
@@ -86,7 +84,6 @@
   .pip{width:17px;height:17px;border-radius:50%;background:#3a3d3f;display:flex;align-items:center;justify-content:center;font-size:10px;}
   .pip.single{background:var(--gain);}
   .pip.star{background:var(--gold);color:#1c1500;}
-  /* fuel + habit */
   .fuel-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
   .fuel-avg{font-family:var(--mono);font-size:12px;color:var(--ink-2);}
   .fuel-avg strong{color:var(--ink);font-weight:600;}
@@ -107,7 +104,6 @@
   .habit-box.hit{background:var(--gain);color:#fff;border-color:var(--gain);}
   .habit-box.miss{color:var(--line-2);}
   .habit-dlabel{font-family:var(--mono);font-size:9px;color:var(--ink-3);}
-  /* lifts */
   .positions{border-top:1px solid var(--line);}
   .pos-row{display:grid;grid-template-columns:1fr 60px auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer;}
   .pos-name{font-weight:600;font-size:15px;letter-spacing:-.01em;}
@@ -136,7 +132,6 @@
   .vid-embed{aspect-ratio:16/9;width:100%;display:block;border:0;}
   .vid-label{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);padding:8px 12px;}
   .vid-empty{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:12px;}
-  /* checkin cards */
   .ck-week{margin-bottom:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card);}
   .ck-head{cursor:pointer;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;user-select:none;}
   .ck-wk-name{font-weight:600;font-size:14px;}
@@ -168,7 +163,6 @@
   textarea{width:100%;min-height:200px;font-family:var(--mono);font-size:11px;line-height:1.5;padding:12px;border:1px solid var(--line-2);border-radius:8px;background:var(--inputbg);color:var(--ink);resize:vertical;}
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:11px 18px;border-radius:8px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;max-width:90%;text-align:center;}
   .toast.show{opacity:1;}
-
   .recipe-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;}
   .recipe-title{font-family:var(--display);font-weight:600;font-size:19px;margin-bottom:4px;}
   .recipe-meta{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-bottom:14px;}
@@ -182,6 +176,14 @@
   .kcal-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:2px;}
   .kcal-compare{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-top:12px;text-align:center;}
   .kcal-compare b{color:var(--gain);}
+  .mmc-cta{display:block;text-align:center;font-family:var(--ui);font-weight:600;font-size:13px;padding:11px 16px;border-radius:9px;background:var(--gain);color:#fff;text-decoration:none;margin-bottom:14px;}
+  .mmc-note{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);line-height:1.5;margin-bottom:14px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;}
+  .mmc-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line);gap:10px;}
+  .mmc-item:last-child{border-bottom:none;}
+  .mmc-item a{color:var(--ink);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .mmc-macros{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);white-space:nowrap;}
+  .mmc-tag{display:block;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-top:2px;}
+  .mmc-dairy-note{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.5;}
   @media(prefers-reduced-motion:reduce){.ledger-fill,.meal-fill{transition:none;}}
 </style>
 </head>
@@ -217,8 +219,7 @@ var FIREBASE_CONFIG = {
 var FB_VERSION = "10.12.5";
 var CLIENT_ID = new URLSearchParams(location.search).get('c') || 'marximus';
 
-/* ============================ SEED DATA (week 1 included) ============================
-   Never put health conditions or sensitive notes in here. Performance data only. */
+/* ============================ SEED DATA ============================ */
 var DATA = {
   client:{ name:"Marximus", startWeight:60.0, goalWeight:70.0, milestone:65, heightCm:175, startDate:"2026-06-23", targetDate:"2026-12-31" },
   asOf:"2026-07-06",
@@ -261,10 +262,15 @@ var DATA = {
     { name:"Goblet Squat",      session:"Lower", history:[] },
     { name:"DB Lunges",         session:"Lower", history:[] }
   ],
+  nutrition:{ mealsTarget:4, week:[
+    {day:"Mon",hit:4},{day:"Tue",hit:3},{day:"Wed",hit:4},{day:"Thu",hit:3},{day:"Fri",hit:4},{day:"Sat",hit:3},{day:"Sun",hit:4}
+  ]},
+  habit:{ name:"Train abs on wake-up", history:[
+    {date:"2026-06-30",hit:true},{date:"2026-07-01",hit:false},{date:"2026-07-02",hit:true},
+    {date:"2026-07-03",hit:false},{date:"2026-07-04",hit:true},{date:"2026-07-05",hit:false}
+  ]},
   recipe:{
-    title:"Japanese Beef Curry",
-    servings:5,
-    updated:"2026-07-06",
+    title:"Japanese Beef Curry", servings:5, updated:"2026-07-06",
     ingredients:[
       {name:"Beef mince (3 star)", qty:"800g"},
       {name:"Onion", qty:"1"},
@@ -288,13 +294,14 @@ var DATA = {
       "Serve over rice — or noodles for the extra calories. Split into 5 containers for the week."
     ]
   },
-  nutrition:{ mealsTarget:4, week:[
-    {day:"Mon",hit:4},{day:"Tue",hit:3},{day:"Wed",hit:4},{day:"Thu",hit:3},{day:"Fri",hit:4},{day:"Sat",hit:3},{day:"Sun",hit:4}
-  ]},
-  habit:{ name:"Train abs on wake-up", history:[
-    {date:"2026-06-30",hit:true},{date:"2026-07-01",hit:false},{date:"2026-07-02",hit:true},
-    {date:"2026-07-03",hit:false},{date:"2026-07-04",hit:true},{date:"2026-07-05",hit:false}
-  ]},
+  mymusclechef:{
+    title:"MyMuscleChef — high-calorie top-up",
+    link:"https://www.mymusclechef.com/menu/meals/plus",
+    updated:"2026-07-06",
+    guidance:"Baseline diet sits right around maintenance — that's why the scale stalls. Add ONE of these as a genuine 4th or 5th meal, 5–6x this week, to land in the +300–500 kcal surplus zone. Don't stack several in one day.",
+    dairyNote:"Always tap the site's own \"No Added Dairy\" filter before ordering — dairy content below is estimated from the dish type, not confirmed per product.",
+    items:[]
+  },
   checkins:[
     { week:1, date:"2026-07-06", weightAvg:null, weightEst:61,
       sessionsDone:2, sessionsPlanned:2, mealsAvg:3.5, habitRate:50,
@@ -305,7 +312,6 @@ var DATA = {
   ]
 };
 
-/* aliases so old cloud data maps onto the new lift names */
 var LIFT_ALIASES={ "DB Overhead Press":"DB Shoulder Press" };
 var DESIRED_LIFTS=[
   {name:"Pull-ups",session:"Upper",bodyweight:true},
@@ -323,7 +329,6 @@ function reshapeLifts(old){
   return DESIRED_LIFTS.map(function(d){
     var m=old.find(function(o){return o.name===d.name;});
     var hist=(m&&m.history)?m.history.slice():[];
-    /* merge in seed week-1 entries the cloud doesn't have yet */
     var seed=DATA.lifts.find(function(s){return s.name===d.name;});
     if(seed) seed.history.forEach(function(e){ if(!hist.some(function(x){return sameEntry(x,e);})) hist.push(e); });
     hist.sort(function(a,b){return a.date<b.date?-1:1;});
@@ -338,7 +343,6 @@ function migrate(s){
   if(s.weekTarget===undefined) s.weekTarget=3;
   if(!Array.isArray(s.weekLog)) s.weekLog=[];
   s.lifts=reshapeLifts(s.lifts);
-  /* program cards: coach-controlled — always take seed program, preserve cloud videos by session name */
   var oldSessions=s.sessions||[];
   s.sessions=DATA.sessions.map(function(seed){
     var m=oldSessions.find(function(o){return o.name===seed.name || (seed.name==='Lower' && o.name==='Lower + Abs');});
@@ -354,19 +358,19 @@ function migrate(s){
   if(!s.streak) s.streak={currentWeeks:0,bestWeeks:0,starWeeks:[]};
   if(!Array.isArray(s.streak.starWeeks)) s.streak.starWeeks=s.streak.doubleWeeks||[];
   delete s.streak.doubleWeeks;
-  if(s.streak.currentWeeks<DATA.streak.currentWeeks && (!s.checkins||!s.checkins.length)) s.streak=structuredClone(DATA.streak);
   if(!s.coachNotes) s.coachNotes={ headline:s.coachMessage||DATA.coachNotes.headline, consistency:DATA.coachNotes.consistency, training:DATA.coachNotes.training };
   delete s.coachMessage;
   if(!Array.isArray(s.checkins)) s.checkins=[];
   DATA.checkins.forEach(function(c){ if(!s.checkins.some(function(x){return x.week===c.week;})) s.checkins.push(c); });
   s.checkins.sort(function(a,b){return a.week-b.week;});
+  if(!s.nextSession) s.nextSession=DATA.nextSession;
   if(!s.recipe) s.recipe=structuredClone(DATA.recipe);
   else {
     if(s.recipe.noodleKcal===undefined) s.recipe.noodleKcal=DATA.recipe.noodleKcal;
     if(!s.recipe.water) s.recipe.water=DATA.recipe.water;
     if(!s.recipe.directions||!s.recipe.directions.length) s.recipe.directions=DATA.recipe.directions.slice();
   }
-  if(!s.nextSession) s.nextSession=DATA.nextSession;
+  if(!s.mymusclechef) s.mymusclechef=structuredClone(DATA.mymusclechef);
   if(new Date(DATA.asOf)>new Date(s.asOf||0)) s.asOf=DATA.asOf;
   return s;
 }
@@ -398,7 +402,6 @@ function sparkline(pts,opt){
   return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" fill="none"><path d="'+d+'" stroke="var(--gain)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+l[0].toFixed(1)+'" cy="'+l[1].toFixed(1)+'" r="2.2" fill="var(--gain)"/></svg>';
 }
 
-/* generic weekly chart from checkins: mode 'bars' or 'line' */
 function weeklyChart(rows,valueFn,opts){
   opts=opts||{};
   var pts=rows.map(function(c){ var v=valueFn(c); return v==null?null:{w:c.week,v:v}; }).filter(Boolean);
@@ -407,7 +410,6 @@ function weeklyChart(rows,valueFn,opts){
   var vmax=Math.max.apply(null,pts.map(function(p){return p.v;}));
   if(opts.target) vmax=Math.max(vmax,opts.target);
   vmax=vmax*1.15||1;
-  /* evenly space by index, not by week number, so gaps between logged weeks don't stretch the axis */
   function Xi(i){ return pts.length===1 ? (padL+(W-padL-padR)/2) : padL+(i/(pts.length-1))*(W-padL-padR); }
   function Y(v){ return padT+(1-v/vmax)*(H-padT-padB); }
   var out='<svg class="wchart" viewBox="0 0 '+W+' '+H+'" fill="none">';
@@ -487,7 +489,20 @@ function coachCard(text,label){
   return '<div class="sec-label">'+(label||'From your coach')+'</div><div class="coach"><div class="coach-from">Howe</div><div class="coach-msg">'+esc(text)+'</div></div>';
 }
 
-/* ----- Consistency tab ----- */
+function buildMyMuscleChef(){
+  var m=state.mymusclechef; if(!m) return '';
+  var items=(m.items||[]).map(function(it){
+    return '<div class="mmc-item"><div><a href="'+it.url+'" target="_blank" rel="noopener">'+esc(it.name)+'</a><span class="mmc-tag">'+esc(it.dairyTag||'')+'</span></div><div class="mmc-macros">'+it.kcal+'cal &middot; '+it.protein+'g P</div></div>';
+  }).join('');
+  return '<div class="sec-label">Meal top-up</div><div class="recipe-card">'
+    +'<div class="recipe-title">'+esc(m.title)+'</div>'
+    +'<div class="recipe-meta">Updated '+fmtDate(m.updated)+'</div>'
+    +'<a class="mmc-cta" href="'+m.link+'" target="_blank" rel="noopener">Browse PLUS+ range &rarr;</a>'
+    +(m.guidance?'<div class="mmc-note">'+esc(m.guidance)+'</div>':'')
+    +items
+    +(m.dairyNote?'<div class="mmc-dairy-note">⚠ '+esc(m.dairyNote)+'</div>':'')
+    +'</div>';
+}
 
 function buildRecipe(){
   var r=state.recipe; if(!r) return '';
@@ -518,7 +533,8 @@ function buildConsistency(){
   var delta=round1(cur-start), pct=Math.max(0,Math.min(1,(cur-start)/(goal-start))), rem=round1(goal-cur);
   var milePct=D.client.milestone?Math.max(0,Math.min(1,(D.client.milestone-start)/(goal-start)))*100:null;
 
-  var out=buildRecipe();
+  var out=buildMyMuscleChef();
+  out+=buildRecipe();
   out+='<div class="sec-label">Bodyweight<span class="edit-hint">tap to edit</span></div><div class="nav-top">'
     +(ui.editWeight?'<input class="nav-input" id="bw-input" type="number" inputmode="decimal" value="'+cur+'" />':'<div class="nav-figure" data-act="editweight">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
     +'<div class="nav-delta"><span class="big '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+delta+' kg</span><span class="muted">since start</span></div></div>'
@@ -527,7 +543,6 @@ function buildConsistency(){
     +'<div class="ledger-tick"></div></div><div class="ledger-ends"><span>'+start+'kg</span><span class="goal">'+goal+'kg &middot; '+rem+'kg to go</span></div></div>'
     +expander('bw','tap to see progress',bwChart());
 
-  /* this week sessions */
   var n=D.weekLog.length, T=D.weekTarget;
   var dots=''; for(var i=0;i<T;i++){ var cls=i<n?(n>=T?'g':'f'):''; dots+='<div class="sdot '+cls+'">'+(i<n?'✓':(i+1))+'</div>'; }
   var chips=D.weekLog.map(function(s,idx){ return '<div class="chip" data-act="unlog" data-i="'+idx+'">'+s.type+' &middot; '+fmtDate(s.date)+'<span>×</span></div>'; }).join('');
@@ -542,7 +557,6 @@ function buildConsistency(){
     +'<div class="streak"><div><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;"><span class="streak-fig">'+D.streak.currentWeeks+'</span><span class="streak-unit">week streak</span></div><div class="streak-best">Best &middot; '+D.streak.bestWeeks+' &middot; ★ = all '+T+'</div></div><div class="pips">'+pips+'</div></div>'
     +expander('sess','tap to see progress',weeklyChart(cks,function(c){return c.sessionsDone;},{mode:'bars',target:3}));
 
-  /* fuel */
   var MT=D.nutrition.mealsTarget,tot=D.nutrition.week.reduce(function(a,d){return a+d.hit;},0),avg=round1(tot/D.nutrition.week.length);
   var meals=D.nutrition.week.map(function(d,i){ var ph=Math.min(1,d.hit/MT)*100,short=d.hit<MT;
     return '<div class="meal-col" data-act="cyclemeal" data-i="'+i+'"><div class="meal-n">'+d.hit+'</div><div class="meal-track"><div class="meal-fill'+(short?' short':'')+'" style="height:'+ph+'%"></div></div><div class="meal-day">'+d.day+'</div></div>'; }).join('');
@@ -550,7 +564,6 @@ function buildConsistency(){
     +'<div class="fuel-head"><span class="fuel-avg">Target <strong>'+MT+'</strong>/day</span><span class="fuel-avg">Avg <strong>'+avg+'</strong>/day</span></div><div class="meals">'+meals+'</div>'
     +expander('fuel','tap to see progress',weeklyChart(cks,function(c){return c.mealsAvg;},{mode:'line',target:4}));
 
-  /* habit */
   var H=D.habit, hist=H.history.slice().sort(function(a,b){return a.date<b.date?-1:1;});
   var hitCount=hist.filter(function(d){return d.hit;}).length, rate=hist.length?Math.round(hitCount/hist.length*100):0;
   var habitWeek=habitCurrentWeek().map(function(d){ return '<div class="habit-day" data-act="togglehabit" data-date="'+d.date+'"><div class="habit-box '+(d.hit?'hit':'miss')+'">'+(d.hit?'✓':'·')+'</div><div class="habit-dlabel">'+dow(d.date)+'</div></div>'; }).join('');
@@ -561,7 +574,6 @@ function buildConsistency(){
 
   out+=coachCard(D.coachNotes.consistency,'Coach · consistency');
 
-  /* weekly check-in archive */
   out+='<div class="sec-label">Check-in archive</div>';
   if(!cks.length) out+='<div class="empty-hint">First check-in appears after your week-1 call.</div>';
   cks.slice().reverse().forEach(function(c){
@@ -584,7 +596,6 @@ function buildConsistency(){
   return out;
 }
 
-/* ----- Training tab ----- */
 function buildTraining(){
   var D=state;
   var out='<div class="sec-label">Lifts<span class="edit-hint">tap a row to log</span></div><div class="positions">'+
@@ -704,7 +715,6 @@ document.getElementById('app').addEventListener('click',function(e){
   }
 });
 
-/* ---- coach panel ---- */
 function refreshTextarea(){ document.getElementById('json-input').value=JSON.stringify(state,null,2); }
 document.getElementById('copy').addEventListener('click',function(){
   var txt=JSON.stringify(state,null,2);
@@ -717,7 +727,6 @@ document.getElementById('apply').addEventListener('click',function(){
   catch(err){ toast('JSON error'); }
 });
 
-/* ============================ DATA LAYER ============================ */
 var cloud=false, docRef=null, fb=null, pendingSnap=null, writeTimer=null;
 function applyPendingOrRender(){ if(pendingSnap){ state=migrate(pendingSnap); pendingSnap=null; saveLocal(); } render(); }
 function pushCloud(){ if(docRef&&fb) fb.setDoc(docRef,state).catch(function(){}); }
@@ -743,7 +752,6 @@ function initCloud(){
   .catch(function(){ cloud=false; });
 }
 
-/* ---- boot ---- */
 try{ if(localStorage.getItem('hw_theme')==='dark') document.body.classList.add('dark'); }catch(e){}
 state=migrate(loadLocal());
 render();
