@@ -248,6 +248,10 @@
   .cp-msg.bad{color:var(--behind);}
   .cp-msg a{color:var(--gain);}
   .cp-link{font-family:var(--mono);font-size:11px;color:var(--ink);word-break:break-all;margin:6px 0;}
+
+  .lib-card{margin-top:10px;}
+  .lib-card .demo{margin-top:10px;}
+  .pos-row.acc .demo{margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -468,70 +472,187 @@ function heatmap(){
   }
   return s+'</svg>';
 }
-/* ---------------- movement demos (simple animated stick figures, side view) ---------------- */
+/* ---------------- movement demo library (animated stick figures) ----------------
+   Each demo: name, group, cues, two key poses (a = start, b = end), optional kit (fixed
+   equipment), cable (pulley point), load (what is held) and match (name keywords).
+   Points: H head, N neck/shoulder, P hip, K knee, A ankle, E elbow, W wrist
+   (+ K2/A2/E2/W2 for front-view figures). viewBox 120×116, floor at y=110.
+   A lift finds its demo by: its "demo" field, then its id, then its name. */
 var DEMO={
-  pullup:{cues:['Start from a dead hang','Drive elbows down to your ribs','Chin clears the bar'],
+  /* ----- pull ----- */
+  pullup:{name:'Pull-up / chin-up',group:'Pull',cues:['Start from a dead hang','Drive elbows down to your ribs','Chin clears the bar'],
+    kit:[['l',26,12,94,12,3]],load:'belt',match:/pull[- ]?ups?\b|chin[- ]?ups?\b/,
     a:{H:[61,36],N:[58,44],P:[58,74],K:[60,90],A:[54,101],E:[55,29],W:[60,14]},
     b:{H:[62,4],N:[59,14],P:[57,44],K:[60,60],A:[54,71],E:[45,20],W:[60,13]}},
-  bench:{cues:['Shoulder blades pinned back','Bar to lower chest','Feet driving into the floor'],
-    a:{H:[36,69],N:[46,71],P:[74,71],K:[90,70],A:[94,108],E:[40,80],W:[50,63]},
-    b:{H:[36,69],N:[46,71],P:[74,71],K:[90,70],A:[94,108],E:[46,53],W:[46,33]}},
-  incline:{cues:['Bench at 30–45°','Elbows about 45° from your sides','Press up and slightly back'],
-    a:{H:[43,51],N:[48,60],P:[66,88],K:[84,87],A:[88,108],E:[38,71],W:[47,58]},
-    b:{H:[43,51],N:[48,60],P:[66,88],K:[84,87],A:[88,108],E:[51,43],W:[55,26]}},
-  row:{cues:['Hinge to about 45°, flat back','Pull to your lower ribs','No torso swing'],
+  pulldown:{name:'Lat pulldown',group:'Pull',cues:['Thighs locked under the pad','Pull the bar to your upper chest','Elbows down and back, chest up'],
+    kit:[['r',40,90,24,4],['l',52,94,52,110,3],['c',70,82,4]],cable:[58,4],load:'bar',match:/lat ?pull|pull[- ]?down/,
+    a:{H:[54,50],N:[53,58],P:[50,88],K:[70,88],A:[72,108],E:[56,43],W:[58,28]},
+    b:{H:[54,50],N:[53,58],P:[50,88],K:[70,88],A:[72,108],E:[46,70],W:[58,62]}},
+  sapull:{name:'Straight-arm pulldown',group:'Pull',cues:['Slight hinge, arms nearly straight','Sweep the bar down to your thighs','Feel it in your lats, not your triceps'],
+    cable:[100,6],load:'bar',match:/straight[- ]?arm/,
+    a:{H:[66,33],N:[63,40],P:[56,68],K:[59,88],A:[58,108],E:[74,30],W:[84,19]},
+    b:{H:[66,33],N:[63,40],P:[56,68],K:[59,88],A:[58,108],E:[66,55],W:[69,69]}},
+  row:{name:'Barbell row',group:'Pull',cues:['Hinge to about 45°, flat back','Pull to your lower ribs','No torso swing'],
+    load:'plate',match:/barbell row|bent[- ]?over|pendlay|\brow\b/,
     a:{H:[85,44],N:[77,50],P:[49,68],K:[63,89],A:[58,108],E:[78,66],W:[79,85]},
     b:{H:[85,44],N:[77,50],P:[49,68],K:[63,89],A:[58,108],E:[60,55],W:[71,67]}},
-  ohp:{cues:['Glutes and abs braced','Head through at lockout','Bar finishes over mid-foot'],
+  csrow:{name:'Chest-supported / seated row',group:'Pull',cues:['Chest stays on the pad','Pull elbows back past your ribs','Squeeze shoulder blades, slow return'],
+    kit:[['r',57,56,5,26],['r',34,90,26,4],['l',46,94,46,110,3]],load:'handle',match:/chest[- ]?supported|seated row|machine row|cable row|low row|t[- ]?bar|hammer strength row|iso[- ]?row/,
+    a:{H:[54,51],N:[52,59],P:[46,88],K:[66,88],A:[70,108],E:[66,62],W:[80,64]},
+    b:{H:[54,51],N:[52,59],P:[46,88],K:[66,88],A:[70,108],E:[39,65],W:[52,67]}},
+  facepull:{name:'Face pull',group:'Pull',cues:['Rope at face height','Pull to your ears, elbows high','Thumbs finish pointing back'],
+    cable:[106,34],load:'handle',match:/face ?pull/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[74,38],W:[89,37]},
+    b:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[50,32],W:[63,27]}},
+  reardelt:{name:'Rear delt fly',group:'Pull',front:true,cues:['Soft bend in the elbows','Open the arms wide, lead with the hands','Pause, then slow back in'],
+    load:'handle',match:/rear ?delt|reverse (pec|fly)/,
+    a:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[52,46],W:[58,52],E2:[68,46],W2:[62,52]},
+    b:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[45,39],W:[31,40],E2:[75,39],W2:[89,40]}},
+  /* ----- push ----- */
+  bench:{name:'Bench press',group:'Push',cues:['Shoulder blades pinned back','Bar to lower chest','Feet driving into the floor'],
+    kit:[['r',22,75,66,6],['l',30,81,30,110,3],['l',80,81,80,110,3]],load:'plate',match:/bench|chest press|flat press/,
+    a:{H:[36,69],N:[46,71],P:[74,71],K:[90,70],A:[94,108],E:[40,80],W:[50,63]},
+    b:{H:[36,69],N:[46,71],P:[74,71],K:[90,70],A:[94,108],E:[46,53],W:[46,33]}},
+  incline:{name:'Incline press',group:'Push',cues:['Bench at 30–45°','Elbows about 45° from your sides','Press up and slightly back'],
+    kit:[['l',42,64,63,94,6],['l',63,94,82,94,6],['l',72,94,72,110,3]],load:'db',match:/incline/,
+    a:{H:[43,51],N:[48,60],P:[66,88],K:[84,87],A:[88,108],E:[38,71],W:[47,58]},
+    b:{H:[43,51],N:[48,60],P:[66,88],K:[84,87],A:[88,108],E:[51,43],W:[55,26]}},
+  ohp:{name:'Standing overhead press',group:'Push',cues:['Glutes and abs braced','Head through at lockout','Bar finishes over mid-foot'],
+    load:'plate',match:/overhead press|\bohp\b|military|standing press|push press/,
     a:{H:[62,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[66,49],W:[69,37]},
     b:{H:[63,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[62,22],W:[61,7]}},
-  lateral:{front:true,cues:['Soft bend in the elbow','Lead with the elbows','Stop at shoulder height'],
+  shpress:{name:'Seated shoulder press (machine)',group:'Push',cues:['Back flat on the pad','Handles start at shoulder height','Press straight up, don’t lock hard'],
+    kit:[['r',43,44,5,46],['r',40,90,26,4],['l',52,94,52,110,3]],load:'handle',match:/shoulder press|arnold|seated (db |dumbbell )?press/,
+    a:{H:[53,50],N:[52,58],P:[52,88],K:[72,88],A:[74,108],E:[60,69],W:[61,55]},
+    b:{H:[53,50],N:[52,58],P:[52,88],K:[72,88],A:[74,108],E:[57,44],W:[58,29]}},
+  lateral:{name:'Lateral raise',group:'Push',front:true,cues:['Soft bend in the elbow','Lead with the elbows','Stop at shoulder height'],
+    load:'db',match:/lateral|side raise/,
     a:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[53,53],W:[51,67],E2:[67,53],W2:[69,67]},
     b:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[45,41],W:[31,40],E2:[75,41],W2:[89,40]}},
-  hex:{cues:['Hips down, chest up','Push the floor away','Stand tall, no leaning back'],
-    a:{H:[80,54],N:[72,60],P:[51,81],K:[71,91],A:[60,108],E:[68,74],W:[65,89]},
-    b:{H:[62,30],N:[60,38],P:[58,68],K:[61,88],A:[60,108],E:[60,53],W:[60,68]}},
-  hipthrust:{cues:['Upper back on the bench edge','Chin tucked, ribs down','Squeeze glutes hard at the top'],
-    a:{H:[31,71],N:[40,77],P:[57,94],K:[77,81],A:[81,108],E:[47,86],W:[56,88]},
-    b:{H:[31,71],N:[40,77],P:[62,74],K:[81,74],A:[83,108],E:[50,78],W:[61,69]}},
-  squat:{cues:['Feet shoulder-width, toes slightly out','Sit between your heels, chest tall','Drive up through the whole foot'],
-    a:{H:[60,30],N:[60,38],P:[58,68],K:[61,88],A:[60,108],E:[66,52],W:[64,42]},
-    b:{H:[64,50],N:[62,58],P:[46,86],K:[68,88],A:[60,108],E:[72,70],W:[70,62]}},
-  pushup:{cues:['Hands under shoulders, body in one line','Elbows about 45° from your sides','Chest to a fist from the floor'],
+  cablefly:{name:'Cable / pec-deck fly',group:'Push',front:true,cues:['Slight bend in the elbows, fixed','Hug a big tree in front of your chest','Slow on the way back out'],
+    cable:[10,10],cable2:[110,10],load:'handle',match:/fly|flye|pec deck|crossover/,
+    a:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[45,39],W:[31,40],E2:[75,39],W2:[89,40]},
+    b:{H:[60,29],N:[60,38],P:[60,68],K:[55,88],A:[54,108],K2:[65,88],A2:[66,108],E:[50,48],W:[58,56],E2:[70,48],W2:[62,56]}},
+  pushup:{name:'Push-up',group:'Push',cues:['Hands under shoulders, body in one line','Elbows about 45° from your sides','Chest to a fist from the floor'],
+    match:/push[- ]?ups?\b/,
     a:{H:[94,78],N:[86,82],P:[56,92],K:[38,99],A:[20,107],E:[86,95],W:[86,108]},
     b:{H:[94,93],N:[86,96],P:[56,100],K:[38,103],A:[20,107],E:[75,101],W:[86,108]}},
-  rdl:{cues:['Soft knees, push hips back','Bar slides down the thighs','Flat back, stop when hips stop'],
+  /* ----- arms ----- */
+  curl:{name:'Barbell / EZ-bar curl',group:'Arms',cues:['Elbows pinned to your sides','Curl up without swinging','Lower slowly, full stretch'],
+    load:'plate6',match:/curl/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[61,53],W:[63,68]},
+    b:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[62,53],W:[73,43]}},
+  hammer:{name:'Hammer curl',group:'Arms',cues:['Thumbs up, palms facing in','Elbows stay by your sides','Lower slowly'],
+    load:'dbv',match:/hammer curl/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[61,53],W:[63,68]},
+    b:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[62,53],W:[73,43]}},
+  cablecurl:{name:'Cable curl',group:'Arms',cues:['Step back so the cable stays tight','Elbows pinned, curl to your shoulders','Slow on the way down'],
+    cable:[84,106],load:'bar',match:/cable curl/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[61,53],W:[63,68]},
+    b:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[62,53],W:[73,43]}},
+  pushdown:{name:'Triceps pushdown',group:'Arms',cues:['Elbows glued to your sides','Push down until arms are straight','Only the forearms move'],
+    cable:[76,4],load:'bar',match:/push ?down|press ?down/,
+    a:{H:[62,30],N:[61,38],P:[59,68],K:[60,88],A:[60,108],E:[63,53],W:[76,46]},
+    b:{H:[62,30],N:[61,38],P:[59,68],K:[60,88],A:[60,108],E:[63,53],W:[65,68]}},
+  ohtri:{name:'Overhead triceps extension',group:'Arms',cues:['Elbows point up, close to your head','Lower behind your head','Straighten fully at the top'],
+    load:'dbv',match:/overhead (tricep|triceps|extension)|(tricep|triceps|french).*overhead|skull ?crusher/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[63,24],W:[51,33]},
+    b:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,108],E:[63,24],W:[64,9]}},
+  /* ----- legs ----- */
+  squat:{name:'Squat (goblet / back)',group:'Legs',cues:['Feet shoulder-width, toes slightly out','Sit between your heels, chest tall','Drive up through the whole foot'],
+    load:'db',match:/^(?!.*split).*squat|goblet/,
+    a:{H:[60,30],N:[60,38],P:[58,68],K:[61,88],A:[60,108],E:[66,52],W:[64,42]},
+    b:{H:[64,50],N:[62,58],P:[46,86],K:[68,88],A:[60,108],E:[72,70],W:[70,62]}},
+  hack:{name:'Hack squat (machine)',group:'Legs',cues:['Back and hips flat on the pad','Lower until thighs pass parallel','Push through mid-foot, don’t lock knees'],
+    kit:[['l',36,35,66,96,3],['l',70,111,95,106,4]],load:'sled',match:/hack/,
+    a:{H:[42,37],N:[46,44],P:[60,71],K:[71,89],A:[80,108],E:[54,55],W:[52,42]},
+    b:{H:[48,52],N:[52,59],P:[66,86],K:[86,88],A:[80,108],E:[60,70],W:[58,57]}},
+  legpress:{name:'Leg press',group:'Legs',cues:['Lower back stays on the seat','Knees track over your toes','Press through heels, soft knees at the top'],
+    kit:[['l',19,67,49,95,5],['l',46,96,62,96,4],['l',62,108,106,64,2]],load:'footplate',match:/leg press/,
+    a:{H:[23,63],N:[28,70],P:[50,90],K:[48,70],A:[68,72],E:[36,82],W:[48,90]},
+    b:{H:[23,63],N:[28,70],P:[50,90],K:[64,76],A:[78,62],E:[36,82],W:[48,90]}},
+  rdl:{name:'Romanian deadlift',group:'Legs',cues:['Soft knees, push hips back','Bar slides down the thighs','Flat back, stop when hips stop'],
+    load:'plate',match:/\brdl\b|romanian|stiff[- ]?leg/,
     a:{H:[60,30],N:[60,38],P:[58,68],K:[60,88],A:[60,108],E:[61,53],W:[61,68]},
     b:{H:[84,53],N:[76,56],P:[48,70],K:[58,88],A:[60,108],E:[76,71],W:[76,86]}},
-  nordic:{cues:['Ankles anchored under the pad','Lower as slowly as you can','Hips stay straight, no folding'],
+  hex:{name:'Trap-bar deadlift',group:'Legs',cues:['Hips down, chest up','Push the floor away','Stand tall, no leaning back'],
+    load:'bigplate',match:/hex|trap[- ]?bar|deadlift/,
+    a:{H:[80,54],N:[72,60],P:[51,81],K:[71,91],A:[60,108],E:[68,74],W:[65,89]},
+    b:{H:[62,30],N:[60,38],P:[58,68],K:[61,88],A:[60,108],E:[60,53],W:[60,68]}},
+  hipthrust:{name:'Hip thrust',group:'Legs',cues:['Upper back on the bench edge','Chin tucked, ribs down','Squeeze glutes hard at the top'],
+    kit:[['r',12,78,28,32]],load:'hip',match:/hip thrust|glute bridge/,
+    a:{H:[31,71],N:[40,77],P:[57,94],K:[77,81],A:[81,108],E:[47,86],W:[56,88]},
+    b:{H:[31,71],N:[40,77],P:[62,74],K:[81,74],A:[83,108],E:[50,78],W:[61,69]}},
+  legext:{name:'Leg extension',group:'Legs',cues:['Knee lined up with the machine pivot','Kick up until legs are straight','Pause, then lower slowly'],
+    kit:[['r',38,88,34,4],['r',41,46,5,42],['l',52,92,52,110,3]],load:'shinpad',match:/leg ext|quad ext/,
+    a:{H:[51,48],N:[50,56],P:[50,86],K:[70,86],A:[70,106],E:[52,71],W:[60,82]},
+    b:{H:[51,48],N:[50,56],P:[50,86],K:[70,86],A:[90,84],E:[52,71],W:[60,82]}},
+  legcurl:{name:'Leg curl',group:'Legs',cues:['Pad just above your heels','Curl your heels under the seat','Control it back, don’t let it drop'],
+    kit:[['r',38,88,34,4],['r',41,46,5,42],['l',52,92,52,110,3],['r',56,77,16,5]],load:'heelpad',match:/leg curl|hamstring curl|lying curl/,
+    a:{H:[51,48],N:[50,56],P:[50,86],K:[70,86],A:[90,85],E:[52,71],W:[60,82]},
+    b:{H:[51,48],N:[50,56],P:[50,86],K:[70,86],A:[66,105],E:[52,71],W:[60,82]}},
+  calf:{name:'Calf raise',group:'Legs',foot:true,cues:['Balls of the feet on the edge','Rise as high as you can','Pause, then lower to a full stretch'],
+    kit:[['r',62,108,16,4]],load:'db',match:/calf/,
+    a:{H:[60,30],N:[60,38],P:[60,68],K:[60,88],A:[60,106],E:[60,53],W:[60,68]},
+    b:{H:[60,24],N:[60,32],P:[60,62],K:[60,82],A:[60,100],E:[60,47],W:[60,62]}},
+  nordic:{name:'Nordic curl',group:'Legs',cues:['Ankles anchored under the pad','Lower as slowly as you can','Hips stay straight, no folding'],
+    kit:[['r',20,99,12,7]],match:/nordic/,
     a:{H:[54,35],N:[52,43],P:[50,74],K:[50,104],A:[28,104],E:[59,55],W:[64,47]},
     b:{H:[96,52],N:[90,58],P:[71,83],K:[50,104],A:[28,104],E:[96,73],W:[101,89]}}
 };
+var DEMO_ORDER=['pullup','pulldown','sapull','row','csrow','facepull','reardelt','bench','incline','ohp','shpress','lateral','cablefly','pushup','curl','hammer','cablecurl','pushdown','ohtri','squat','hack','legpress','rdl','hex','hipthrust','legext','legcurl','calf','nordic'];
+/* Name matching runs in this order so specific names win (e.g. "straight-arm pulldown" before "pulldown"). */
+var DEMO_MATCH=['sapull','facepull','pushdown','ohtri','reardelt','cablefly','lateral','hammer','cablecurl','legcurl','curl','legext','calf','legpress','hack','pulldown','pullup','csrow','row','shpress','ohp','incline','bench','rdl','hipthrust','nordic','hex','squat','pushup'];
+function demoId(m){
+  if(!m) return null;
+  if(m.demo&&DEMO[m.demo]) return m.demo;
+  if(m.id&&DEMO[m.id]) return m.id;
+  var n=String(m.name||'').toLowerCase(); if(!n) return null;
+  for(var i=0;i<DEMO_MATCH.length;i++){ if(DEMO[DEMO_MATCH[i]].match.test(n)) return DEMO_MATCH[i]; }
+  return null;
+}
 function lerp(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]; }
 function demoSvg(id,t){
   var d=DEMO[id], p={}; Object.keys(d.a).forEach(function(k){ p[k]=lerp(d.a[k],d.b[k],t); });
   function L(a,b,c,w,op){ return '<line x1="'+a[0].toFixed(1)+'" y1="'+a[1].toFixed(1)+'" x2="'+b[0].toFixed(1)+'" y2="'+b[1].toFixed(1)+'" stroke="'+c+'" stroke-width="'+(w||4)+'" stroke-linecap="round"'+(op?' opacity="'+op+'"':'')+'/>'; }
   function C(a,r,f){ return '<circle cx="'+a[0].toFixed(1)+'" cy="'+a[1].toFixed(1)+'" r="'+r+'" fill="'+f+'"/>'; }
-  function DB(a){ return '<rect x="'+(a[0]-6).toFixed(1)+'" y="'+(a[1]-2.5).toFixed(1)+'" width="12" height="5" rx="1.5" fill="var(--gain)"/>'; }
+  function R(x,y,w,h,f){ return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+f+'"/>'; }
+  function DB(a){ return R(a[0]-6,a[1]-2.5,12,5,'var(--gain)'); }
+  function DBV(a){ return R(a[0]-2.5,a[1]-6,5,12,'var(--gain)'); }
+  function HD(a){ return R(a[0]-2.5,a[1]-4,5,8,'var(--gain)'); }
+  function PLATE(a,r){ return C(a,r,'var(--gain)')+C(a,r*0.3,'var(--card)'); }
+  function PAD(seg0,seg1,f,off,r){ var dx=seg1[0]-seg0[0], dy=seg1[1]-seg0[1], l=Math.sqrt(dx*dx+dy*dy)||1, q=lerp(seg0,seg1,f); return C([q[0]+off*dy/l, q[1]-off*dx/l],r,'var(--gain)'); }
   var ink='var(--ink)', eq='var(--ink-3)', s='';
   s+=L([8,110],[112,110],'var(--line-2)',2);
   /* fixed equipment behind the figure */
-  if(id==='pullup') s+=L([26,12],[94,12],eq,3);
-  if(id==='bench') s+='<rect x="22" y="75" width="66" height="6" rx="2" fill="'+eq+'"/>'+L([30,81],[30,110],eq,3)+L([80,81],[80,110],eq,3);
-  if(id==='incline') s+=L([42,64],[63,94],eq,6)+L([63,94],[82,94],eq,6)+L([72,94],[72,110],eq,3);
-  if(id==='hipthrust') s+='<rect x="12" y="78" width="28" height="32" rx="2" fill="'+eq+'"/>';
-  if(id==='nordic') s+='<rect x="20" y="99" width="12" height="7" rx="2" fill="'+eq+'"/>';
+  (d.kit||[]).forEach(function(k){
+    if(k[0]==='l') s+=L([k[1],k[2]],[k[3],k[4]],eq,k[5]||3);
+    else if(k[0]==='r') s+=R(k[1],k[2],k[3],k[4],eq);
+    else if(k[0]==='c') s+=C([k[1],k[2]],k[3],eq);
+  });
+  if(d.cable){ s+=C(d.cable,3,eq)+L(d.cable,p.W,eq,1.2); }
+  if(d.cable2&&p.W2){ s+=C(d.cable2,3,eq)+L(d.cable2,p.W2,eq,1.2); }
+  /* moving equipment that sits behind the body */
+  if(d.load==='sled'){ s+=L([p.N[0]-3,p.N[1]+1],[p.P[0]-3,p.P[1]+1],eq,6)+PLATE([p.N[0]-10,p.N[1]+6],6); }
+  if(d.load==='footplate'){ var fx=p.A[0]+2, fy=p.A[1]-2; s+=PLATE([fx+8,fy-8],6)+L([fx-6,fy-6],[fx+6,fy+6],eq,4); }
   /* back limbs (front-view figure only) */
   if(d.front){ s+=L(p.P,p.K2,ink)+L(p.K2,p.A2,ink)+L(p.N,p.E2,ink)+L(p.E2,p.W2,ink); }
   /* body */
   s+=L(p.P,p.K,ink)+L(p.K,p.A,ink)+L(p.N,p.P,ink,5)+L(p.N,p.E,ink)+L(p.E,p.W,ink)+C(p.H,6,ink);
-  /* load */
-  if(id==='pullup'){ var pl=[p.P[0]+4,p.P[1]+13]; s+=L(p.P,pl,eq,1.5)+C(pl,6,'var(--gain)'); }
-  if(id==='bench'||id==='row'||id==='ohp'||id==='rdl') s+=C(p.W,8,'var(--gain)')+C(p.W,2.5,'var(--card)');
-  if(id==='hex') s+=C(p.W,10,'var(--gain)')+C(p.W,3,'var(--card)');
-  if(id==='hipthrust') s+=C([p.P[0]+1,p.P[1]-6],9,'var(--gain)')+C([p.P[0]+1,p.P[1]-6],2.5,'var(--card)');
-  if(id==='incline'||id==='squat') s+=DB(p.W);
-  if(id==='lateral') s+=DB(p.W)+DB(p.W2);
+  if(d.foot) s+=L(p.A,[p.A[0]+9,108],ink,3);
+  /* load held */
+  var ld=d.load;
+  if(ld==='belt'){ var pl=[p.P[0]+4,p.P[1]+13]; s+=L(p.P,pl,eq,1.5)+C(pl,6,'var(--gain)'); }
+  if(ld==='plate') s+=PLATE(p.W,8);
+  if(ld==='plate6') s+=PLATE(p.W,6);
+  if(ld==='bigplate') s+=PLATE(p.W,10);
+  if(ld==='hip') s+=PLATE([p.P[0]+1,p.P[1]-6],9);
+  if(ld==='db'){ s+=DB(p.W); if(d.front) s+=DB(p.W2); }
+  if(ld==='dbv') s+=DBV(p.W);
+  if(ld==='handle'){ s+=HD(p.W); if(d.front) s+=HD(p.W2); }
+  if(ld==='bar') s+=L([p.W[0]-7,p.W[1]],[p.W[0]+7,p.W[1]],'var(--gain)',3);
+  if(ld==='shinpad') s+=PAD(p.K,p.A,0.88,-5,4.5);
+  if(ld==='heelpad') s+=PAD(p.K,p.A,0.9,5,4.5);
   return s;
 }
 var demoRaf=null, demoT0=0, reduceMotion=false;
@@ -546,9 +667,18 @@ function demoTick(now){
 }
 function startDemos(){ if(document.querySelector('svg[data-demo]')&&!demoRaf){ demoT0=0; demoRaf=requestAnimationFrame(demoTick); } }
 function demoBlock(id){
-  if(!DEMO[id]) return '';
-  return '<div class="demo"><svg data-demo="'+id+'" viewBox="0 0 120 116" role="img" aria-label="Animated demo of the movement">'+demoSvg(id,0)+'</svg><div class="cues"><div class="chart-title">Form cues</div><ol>'+DEMO[id].cues.map(function(c){return '<li>'+esc(c)+'</li>';}).join('')+'</ol></div></div>';
+  if(!id||!DEMO[id]) return '';
+  return '<div class="demo"><svg data-demo="'+id+'" viewBox="0 0 120 116" role="img" aria-label="Animated demo: '+esc(DEMO[id].name)+'">'+demoSvg(id,0)+'</svg><div class="cues"><div class="chart-title">Form cues</div><ol>'+DEMO[id].cues.map(function(c){return '<li>'+esc(c)+'</li>';}).join('')+'</ol></div></div>';
 }
+/* ?library : every demo on one page, with the id to use in a program. */
+function libraryPage(){
+  var groups={}; DEMO_ORDER.forEach(function(id){ var g=DEMO[id].group; (groups[g]=groups[g]||[]).push(id); });
+  return '<header class="masthead"><div class="masthead-row"><span class="brand">'+esc(BRAND)+'</span><span class="mast-right"><span class="status sdemo"><span class="led"></span><span>'+DEMO_ORDER.length+' demos</span></span></span></div><div class="client-name">Exercise library</div><div class="client-sub">Every animated demo the dashboard can show</div></header>'
+    +Object.keys(groups).map(function(g){ return '<div class="sec-label">'+esc(g)+'</div>'+groups[g].map(function(id){
+      return '<div class="card lib-card"><div class="prog-head"><span class="prog-name">'+esc(DEMO[id].name)+'</span><span class="prog-tag">id · '+esc(id)+'</span></div>'+demoBlock(id)+'</div>'; }).join(''); }).join('')
+    +'<div class="updated">Lifts pick up their demo automatically from the name. Use "demo":"id" to force one.</div>';
+}
+
 /* ---------------- shared pieces ---------------- */
 function note(text,label){ if(!text) return ''; return '<div class="sec-label">'+esc(label)+'</div><div class="coach"><div class="coach-from">From '+esc(COACH)+'</div><div class="coach-msg">'+esc(text)+'</div></div>'; }
 function paceline(){
@@ -686,7 +816,7 @@ function liftRow(m){
   if(open){
     var from=rangeFrom('lift',h.length?h[0].date:TODAY);
     var rec=h.slice(-4).reverse().map(function(s){ return '<li><span>'+fmtDate(s.date)+'</span><span style="display:flex;align-items:center;gap:6px"><span class="fm">'+(s.weight!=null?(m.added?'+':'')+s.weight+'kg × ':'')+s.reps+'</span>'+(s.id?'<button class="del" data-act="delset" data-id="'+esc(s.id)+'" aria-label="Delete set">×</button>':'')+'</span></li>'; }).join('');
-    x='<div class="pos-x">'+demoBlock(m.demo||m.id)
+    x='<div class="pos-x">'+demoBlock(demoId(m))
       +(h.length?'<div class="chart-card" style="margin-top:8px"><div class="chart-head"><span class="chart-title">'+(bw?'Reps':'Top set &amp; e1RM')+'</span>'+seg('lift',['3M','6M','ALL'])+'</div>'
       +tchart({from:from,to:TODAY,h:150,bands:holBands(),yfmt:function(v){return Math.round(v);},series:bw?[{type:'line',pts:h.map(function(s){return [s.date,s.reps];}),color:'var(--gain)',end:true}]
         :[{type:'dots',pts:h.map(function(s){return [s.date,s.weight];}),color:'var(--ink-3)',r:2,op:.7},{type:'line',pts:h.map(function(s){return [s.date,r1(e1rm(s.weight,s.reps))];}),color:'var(--gain)',w:2,end:true}]})
@@ -703,7 +833,7 @@ function accRow(d,slot,spec){
   var key='a:'+d.id+':'+slot, open=ui.open===key;
   var past=D.liftLog.filter(function(x){ return x.lift==='acc'&&x.day===d.id&&x.slot===slot; }), last=past[past.length-1], isToday=last&&last.date===TODAY;
   var nm=spec?spec.name:(last?last.name:'');
-  var form=open?'<div class="pos-x"><form class="lift-log" data-f="acc" data-day="'+esc(d.id)+'" data-slot="'+slot+'"><input id="an" style="flex:1 1 100%;width:auto" placeholder="Exercise name" aria-label="Exercise name" value="'+esc(nm)+'" /><input id="aw" type="number" step="0.5" inputmode="decimal" placeholder="kg" aria-label="Weight kg" /><span class="x">×</span><input id="ar" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log</button></form></div>':'';
+  var form=open?'<div class="pos-x">'+demoBlock(demoId(spec||(nm?{name:nm}:null)))+'<form class="lift-log" data-f="acc" data-day="'+esc(d.id)+'" data-slot="'+slot+'"><input id="an" style="flex:1 1 100%;width:auto" placeholder="Exercise name" aria-label="Exercise name" value="'+esc(nm)+'" /><input id="aw" type="number" step="0.5" inputmode="decimal" placeholder="kg" aria-label="Weight kg" /><span class="x">×</span><input id="ar" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log</button></form></div>':'';
   var title=spec?esc(spec.name):'Accessory '+slot+(last?' &middot; <span class="muted">'+esc(last.name)+'</span>':'');
   var det=last?(isToday?'today':'last')+' '+(last.weight!=null?last.weight+'kg × ':'')+last.reps+' · '+fmtDate(last.date):(spec&&spec.scheme?esc(spec.scheme):'your pick on the day');
   return '<div class="pos-row acc" data-act="open" data-k="'+key+'"><div style="min-width:0"><div class="pos-name">'+title+'</div><div class="pos-detail">'+det+'</div></div><span></span><div class="pos-figs"><div class="pos-e1rm muted">'+(open?'–':'+')+'</div></div>'+form+'</div>';
@@ -1012,7 +1142,8 @@ window.addEventListener('hashchange',function(){
   renderCoach();
 });
 initCoach();
-if(DEMO_KIND){ conn='demo'; setR(demoData(DEMO_KIND)); render(); }
+if(params.has('library')){ document.title='Exercise library'; document.getElementById('app').innerHTML=libraryPage(); startDemos(); }
+else if(DEMO_KIND){ conn='demo'; setR(demoData(DEMO_KIND)); render(); }
 else if(!CID){ conn='noid'; render(); }
 else { try{ var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); if(c) setR(c); }catch(e){} render(); initCloud(); }
 
