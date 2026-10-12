@@ -684,7 +684,7 @@ function chart(pts,opts){
     pts.forEach(function(p,i){
       if(p.v==null){ o+='<circle cx="'+X(i).toFixed(1)+'" cy="'+(Y(0)-3)+'" r="2" fill="var(--line-2)"/>'; return; }
       var y=Y(p.v), hit=opts.target&&p.v>=opts.target;
-      o+='<rect x="'+(X(i)-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,Y(0)-y).toFixed(1)+'" rx="3" fill="'+(hit?'var(--gold)':'var(--gain)')+'"/>';
+      o+='<rect x="'+(X(i)-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(0,Y(0)-y).toFixed(1)+'" rx="3" fill="'+(opts.flip?(hit?'var(--gain)':'var(--gold)'):(hit?'var(--gold)':'var(--gain)'))+'"/>';
       if(opts.values&&n<=8) o+='<text x="'+X(i).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--ink-2)" font-family="IBM Plex Mono">'+esc(fmt(p.v))+'</text>';
     });
   } else {
@@ -803,7 +803,7 @@ function buildFuel(){
     +list
     +'<form class="food-add" data-submit="food" autocomplete="off"><input class="fname" id="fd-name" placeholder="Meal or snack" aria-label="Meal or snack" /><input class="fnum" id="fd-kcal" type="number" inputmode="numeric" placeholder="kcal" aria-label="Calories" /><input class="fnum" id="fd-prot" type="number" inputmode="numeric" placeholder="protein g" aria-label="Protein grams" /><button type="submit">Add</button></form>'
     +'</div>'
-    +'<div class="exp-body" style="margin-top:12px;">'+chart(pts,{mode:'bars',target:c.kcalTarget,values:true,fmt:function(v){return v>=1000?(round1(v/1000))+'k':Math.round(v);},empty:'The last 7 days chart fills in as food gets logged.'})
+    +'<div class="exp-body" style="margin-top:12px;">'+chart(pts,{mode:'bars',flip:true,target:c.kcalTarget,values:true,fmt:function(v){return v>=1000?(round1(v/1000))+'k':Math.round(v);},empty:'The last 7 days chart fills in as food gets logged.'})
     +'<div class="wk-stats">Last 7 days &middot; '+(days?'avg <b>'+Math.round(tot/days).toLocaleString()+' kcal</b> &middot; ':'')+'logged '+days+'/7 days</div></div>'
     +expander('fuel',chart(wpts,{mode:'line',target:c.kcalTarget,fmt:function(v){return Math.round(v).toLocaleString();},empty:'Weekly averages appear once food is logged.'}),'tap to see weekly trend');
 }
