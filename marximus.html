@@ -125,6 +125,14 @@
   .ex-name{font-weight:600;}
   .ex-scheme{font-family:var(--mono);font-size:13px;color:var(--ink-2);text-align:right;}
   .ex-row.rest .ex-name,.ex-row.rest .ex-scheme{color:var(--ink-3);font-weight:500;}
+  .ex-row.has-fig{align-items:center;}
+  .ex-lead{display:flex;align-items:center;gap:12px;min-width:0;}
+  .exfig{width:84px;height:56px;flex:none;background:var(--gain-soft);border-radius:12px;overflow:hidden;}
+  .exfig svg{width:100%;height:100%;display:block;}
+  .exfig .body{fill:none;stroke:var(--gain);stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;}
+  .exfig .head{fill:var(--gain);}
+  .exfig .gnd{stroke:var(--ink-3);stroke-width:2.5;stroke-linecap:round;}
+  .ex-cue{display:block;font-size:12px;color:var(--ink-2);font-weight:400;margin-top:2px;line-height:1.35;}
   .scale-note{font-size:12.5px;color:var(--ink-2);line-height:1.5;margin-top:12px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:8px;}
   .timer{background:var(--darkcard);color:var(--darkink);border-radius:14px;padding:20px 18px;margin-top:12px;text-align:center;}
   .tmr{font-family:var(--mono);font-weight:600;font-size:60px;letter-spacing:.02em;line-height:1;}
@@ -854,9 +862,34 @@ function logRounds(r,mins){
   var d=ymd(); state.rounds.push({date:d,rounds:r,minutes:mins}); state.weekLog.push({date:d,type:'Circuit',rounds:r});
   persist(); toast('Session logged · '+r+' rounds');
 }
+/* ---------------- exercise animations: inline SVG + SMIL, no image files ---------------- */
+var EXANIM=[
+  {re:/push/i,label:'Push-up',dur:2.4,cue:'Body in one straight line. Chest to a fist off the floor, then press away.',
+   stat:'<line class="gnd" x1="4" y1="73" x2="116" y2="73"/>',
+   parts:[{t:'pl',a:'12,68 50,54 86,40',b:'12,68 50,63 86,58'},{t:'pl',a:'86,40 83,55 90,71',b:'86,58 75,68 90,71'},{t:'c',a:[95,35],b:[95,53]}]},
+  {re:/pull|chin/i,label:'Pull-up',dur:3,cue:'Start hanging. Pull your chin over the bar, then lower slowly for 3 seconds.',
+   stat:'<line class="gnd" x1="24" y1="10" x2="96" y2="10"/>',
+   parts:[{t:'pl',a:'55,75 60,52 65,75',b:'55,62 60,39 65,62'},{t:'pl',a:'60,30 60,52',b:'60,17 60,39'},{t:'pl',a:'50,30 70,30',b:'50,17 70,17'},
+          {t:'pl',a:'40,10 44,20 50,30',b:'40,10 40,22 50,17'},{t:'pl',a:'80,10 76,20 70,30',b:'80,10 80,22 70,17'},{t:'c',a:[60,21],b:[60,7]}]},
+  {re:/squat/i,label:'Squat',dur:2.6,cue:'Sit back and down, knees over toes, thighs about level. Stand tall.',
+   stat:'<line class="gnd" x1="4" y1="73" x2="116" y2="73"/>',
+   parts:[{t:'pl',a:'44,71 56,71',b:'44,71 56,71'},{t:'pl',a:'50,71 52,52 48,36 48,18',b:'50,71 58,54 42,58 52,42'},{t:'pl',a:'48,18 66,20',b:'52,42 70,43'},{t:'c',a:[48,9],b:[57,34]}]}
+];
+function exDef(name){ for(var i=0;i<EXANIM.length;i++) if(EXANIM[i].re.test(name||'')) return EXANIM[i]; return null; }
+function exSvg(d){
+  var kt='0;.4;.5;.9;1', ks='.45 0 .55 1;0 0 1 1;.45 0 .55 1;0 0 1 1';
+  function an(attr,a,b){ return '<animate attributeName="'+attr+'" values="'+[a,b,b,a,a].join(';')+'" keyTimes="'+kt+'" calcMode="spline" keySplines="'+ks+'" dur="'+d.dur+'s" repeatCount="indefinite"/>'; }
+  var o='<svg viewBox="0 0 120 80" role="img" aria-label="'+d.label+' demonstration">'+d.stat;
+  d.parts.forEach(function(p){
+    if(p.t==='pl') o+='<polyline class="body" points="'+p.a+'">'+an('points',p.a,p.b)+'</polyline>';
+    else o+='<circle class="head" r="5" cx="'+p.a[0]+'" cy="'+p.a[1]+'">'+an('cx',p.a[0],p.b[0])+an('cy',p.a[1],p.b[1])+'</circle>';
+  });
+  return o+'</svg>';
+}
 function buildTraining(){
   var P=state.program, R=state.rounds||[];
-  var exs=(P.exercises||[]).map(function(x){ return '<div class="ex-row"><span class="ex-name">'+esc(x.name)+'</span><span class="ex-scheme">'+esc(x.reps)+'</span></div>'; }).join('')
+  var exs=(P.exercises||[]).map(function(x){ var d=exDef(x.name);
+    return '<div class="ex-row'+(d?' has-fig':'')+'"><span class="ex-lead">'+(d?'<span class="exfig">'+exSvg(d)+'</span>':'')+'<span class="ex-name">'+esc(x.name)+(d?'<span class="ex-cue">'+esc(d.cue)+'</span>':'')+'</span></span><span class="ex-scheme">'+esc(x.reps)+'</span></div>'; }).join('')
     +'<div class="ex-row rest"><span class="ex-name">Rest</span><span class="ex-scheme">'+P.restSec+' sec</span></div>';
   var running=timer.st==='running', paused=timer.st==='paused', done=timer.st==='done', idle=timer.st==='idle';
   var stateLabel=idle?'ready when you are':running?'go — tap +1 after each round':paused?'paused':'time — log it';
@@ -926,6 +959,7 @@ function render(){
   }
   if(ui.logLift!==null){ var l=state.lifts[ui.logLift], ff=l&&document.getElementById(l.bodyweight?'lr':'lw'); if(ff) ff.focus(); }
   if(ui.refocus){ var rf=document.getElementById(ui.refocus); ui.refocus=null; if(rf) rf.focus(); }
+  try{ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll('.exfig svg').forEach(function(v){ if(v.pauseAnimations) v.pauseAnimations(); }); }catch(_){}
 }
 
 /* ---------------- events ---------------- */
