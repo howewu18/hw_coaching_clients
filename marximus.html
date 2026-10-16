@@ -243,7 +243,7 @@ var FIREBASE_CONFIG = {
 };
 /* Starting data. Bump contentVersion when you change client goals, program or coach notes here. */
 var SEED = {
-  "contentVersion": 8,
+  "contentVersion": 9,
   "client": {
     "name": "Marximus",
     "heightCm": 175,
@@ -257,13 +257,15 @@ var SEED = {
     "kcalTarget": 2500,
     "proteinTarget": 120
   },
-  "asOf": "2026-10-08",
+  "asOf": "2026-10-16",
   "weekTarget": 3,
   "weekLog": [],
   "streak": {
-    "currentWeeks": 1,
+    "currentWeeks": 2,
     "bestWeeks": 2,
-    "starWeeks": []
+    "starWeeks": [
+      2
+    ]
   },
   "program": {
     "name": "The Circuit",
@@ -288,9 +290,9 @@ var SEED = {
     "scaling": "When pull-ups run out: do 1, or jump up and lower yourself slowly for 3 seconds. When push-ups run out: hands on the sofa. Slow down, don't stop the clock."
   },
   "coachNotes": {
-    "headline": "New chapter, simpler plan. 61.5kg today — the week off cost a little, nothing that won't come back. Next stop 65kg by Christmas, then 70kg by the end of February. One workout, three times a week, and every meal on the board.",
-    "consistency": "Three sessions a week, 20 minutes each — that's the whole job. Two keeps the streak, three earns the star. Food goes in every day now: send me everything you eat and we'll see exactly where it lands against 2,500.",
-    "training": "No decisions: 10 push-ups, 2 pull-ups, 10 squats, 30 seconds, go again. Squats are in every round now, so legs finally get trained three times a week — that gap is closed. Your score is rounds: log them, beat them by one. First week back, so stopping early is fine. Showing up is the win."
+    "headline": "62.5kg on your own scale — up a full kilo since last week. Three sessions done, food sent every single day. Next stop 65kg by Christmas: about a quarter of a kilo a week from here. Keep doing exactly this, with more protein.",
+    "consistency": "Three sessions a week, 20 minutes each — that's the whole job. Two keeps the streak, three earns the star. Food is landing close to 2,500 — now protein: 120g a day. Most days sit around 90–100g, so add one protein hit a day.",
+    "training": "No decisions: 10 push-ups, 2 pull-ups, 10 squats, 30 seconds, go again. Squats are in every round now, so legs finally get trained three times a week — that gap is closed. Your score is rounds: log them, beat them by one. Lungs giving out before muscles is normal early on — slow down and breathe, don't stop the clock."
   },
   "lifts": [
     {
@@ -468,6 +470,10 @@ var SEED = {
     {
       "date": "2026-10-08",
       "kg": 61.5
+    },
+    {
+      "date": "2026-10-16",
+      "kg": 62.5
     }
   ],
   "checkins": [
@@ -579,6 +585,18 @@ var SEED = {
       "wins": "Back after the recovery week with clear targets: 65kg by Christmas, 70kg by end of February. New single workout he can do anywhere in 20 minutes.",
       "flags": "Down 0.4kg from 61.9 — expected after a week on three meals a day. Needs roughly +0.3kg a week from here to hit 65 by Christmas, about three times his average so far.",
       "focus": "The Circuit, three times a week, rounds logged every time. Every meal and snack sent daily so the food log shows where calories land against 2,500."
+    },
+    {
+      "week": 9,
+      "date": "2026-10-15",
+      "weightAvg": 62.5,
+      "weightEst": null,
+      "sessionsDone": 3,
+      "sessionsPlanned": 3,
+      "kcalAvg": 2320,
+      "wins": "Three sessions, star week. Food sent every day, 7 of 7 logged, averaging about 2,320 kcal against 2,500. 127g protein on Thursday, the first day over target. Up 1.0kg to 62.5 on his own scale. About 4 pull-ups in the 20 minutes, legs trained properly for the first time in a long time, and 2×20 crunches added on his own.",
+      "flags": "Protein averaged about 97g a day against 120, only one day cleared it. Part of this week's kilo is likely extra food and water, so expect it to settle. His sister's scale read 63.8 on Thursday; not counted. Lungs tire before muscles in the circuit, so slow down rather than stop. Very sore thighs from squats, which should ease.",
+      "focus": "Same circuit, three times a week. 120g protein a day: one extra protein hit daily. Keep sending food every day. Weigh on his own scale only. Next call same time next week."
     }
   ]
 };
@@ -632,7 +650,8 @@ function migrate(s){
     if(sl.bodyweight) o.bodyweight=true; return o;
   });
   /* coach-controlled content: replaced whenever the file's contentVersion moves up */
-  if((s.contentVersion||0)<SEED.contentVersion){
+  var bumped=(s.contentVersion||0)<SEED.contentVersion;
+  if(bumped){
     s.client=clone(SEED.client); s.program=clone(SEED.program); s.coachNotes=clone(SEED.coachNotes);
     s.streak=clone(SEED.streak); s.weekTarget=SEED.weekTarget; s.contentVersion=SEED.contentVersion;
   }
@@ -646,6 +665,11 @@ function migrate(s){
   s.bodyweight=mergeBy(s.bodyweight,SEED.bodyweight,'date').sort(byDate);
   if(!s.bodyweight.length) s.bodyweight=[{date:s.client.startDate,kg:s.client.startWeight}];
   s.checkins=mergeBy(s.checkins,SEED.checkins,'week').sort(function(a,b){return a.week-b.week;});
+  /* a newer file is the coach's latest word: its check-ins and weigh-ins win over older copies of the same week/date */
+  if(bumped){
+    s.checkins=s.checkins.map(function(c){ var f=SEED.checkins.find(function(x){return x.week===c.week;}); return f?clone(f):c; });
+    s.bodyweight=s.bodyweight.map(function(b){ var f=SEED.bodyweight.find(function(x){return x.date===b.date;}); return f?clone(f):b; });
+  }
   s.rounds=(s.rounds||[]).slice(); (SEED.rounds||[]).forEach(function(r){ if(!s.rounds.some(function(x){return x.date===r.date&&x.rounds===r.rounds;})) s.rounds.push(clone(r)); }); s.rounds.sort(byDate);
   s.foodLog=mergeBy(s.foodLog,SEED.foodLog,'id').sort(byDate);
   if(!s.asOf||s.asOf<SEED.asOf) s.asOf=SEED.asOf;
