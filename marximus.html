@@ -207,9 +207,9 @@
 <details class="panel">
   <summary><span>Coach panel</span><span>&#9662;</span></summary>
   <div class="panel-body">
-    <p><strong>Daily food:</strong> paste the JSON array Claude gives you from the client's meal messages, then Add.</p>
+    <p><strong>Daily food &amp; weekly check-ins:</strong> paste the JSON Claude gives you (a food list, or a weekly check-in), then Add. Nothing already logged is removed.</p>
     <textarea id="food-json" spellcheck="false" placeholder='[{"date":"2026-10-08","name":"Sultana Bran + oat milk","kcal":350,"protein":10}]'></textarea>
-    <div class="panel-actions" style="margin-top:8px;"><button class="btn" id="food-add-json">Add food entries</button></div>
+    <div class="panel-actions" style="margin-top:8px;"><button class="btn" id="food-add-json">Add entries</button></div>
     <h4>Weekly check-in</h4>
     <p>Copy current data &rarr; run the weekly prompt in Claude &rarr; paste the result &rarr; Apply &rarr; Push to cloud. GitHub is only for layout changes.</p>
     <div class="panel-actions">
@@ -1024,15 +1024,30 @@ document.getElementById('apply').addEventListener('click',function(){
 document.getElementById('food-add-json').addEventListener('click',function(){
   try{
     var raw=JSON.parse(document.getElementById('food-json').value.trim().replace(/^```(json)?/,'').replace(/```$/,''));
-    var arr=Array.isArray(raw)?raw:(raw.entries||raw.foodLog||[]), added=0;
+    var obj=Array.isArray(raw)?{foodLog:raw}:(raw||{}), arr=obj.foodLog||obj.entries||[], added=0, msg=[];
     arr.forEach(function(x){
       if(!x||!x.date||!x.name||x.kcal==null) return;
       var dup=state.foodLog.some(function(y){return y.date===x.date&&y.name===x.name&&y.kcal===Math.round(x.kcal);});
       if(dup) return;
       state.foodLog.push({id:uid(),date:x.date,name:String(x.name),kcal:Math.round(x.kcal),protein:x.protein==null?null:Math.round(x.protein)}); added++;
     });
-    state.foodLog.sort(byDate); persist(); render(); refreshTextarea();
-    document.getElementById('food-json').value=''; toast(added+' food entr'+(added===1?'y':'ies')+' added');
+    state.foodLog.sort(byDate);
+    if(added) msg.push(added+' food entr'+(added===1?'y':'ies'));
+    /* weekly check-ins: same week number replaces the old one, so corrections are just a re-paste */
+    var ck=0; (obj.checkins||[]).forEach(function(c){
+      if(!c||c.week==null) return; state.checkins=(state.checkins||[]).filter(function(y){return y.week!==c.week;}); state.checkins.push(clone(c)); ck++; });
+    if(ck){ state.checkins.sort(function(a,b){return a.week-b.week;}); msg.push(ck+' check-in'+(ck>1?'s':'')); }
+    /* verified weigh-ins: same date replaces */
+    var bw=0; (obj.bodyweight||[]).forEach(function(b){
+      if(!b||!b.date||typeof b.kg!=='number') return; var ex=state.bodyweight.find(function(y){return y.date===b.date;});
+      if(ex) ex.kg=b.kg; else state.bodyweight.push({date:b.date,kg:b.kg}); bw++; });
+    if(bw){ state.bodyweight.sort(byDate); msg.push(bw+' weigh-in'+(bw>1?'s':'')); }
+    /* coach notes: only the keys given are changed */
+    var cn=0; if(obj.coachNotes&&typeof obj.coachNotes==='object') Object.keys(obj.coachNotes).forEach(function(k){
+      if(typeof obj.coachNotes[k]==='string'){ state.coachNotes[k]=obj.coachNotes[k]; cn++; } });
+    if(cn) msg.push(cn+' coach note'+(cn>1?'s':''));
+    persist(); render(); refreshTextarea();
+    document.getElementById('food-json').value=''; toast(msg.length?msg.join(' · ')+' added':'Nothing new to add');
   }catch(err){ toast('JSON error — check the paste'); }
 });
 
