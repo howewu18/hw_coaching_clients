@@ -186,6 +186,11 @@
   .lift-log{display:flex;gap:8px;align-items:center;padding-top:10px;flex-wrap:wrap;}
   .lift-log input{width:84px;}
   .lift-log .x{font-family:var(--mono);color:var(--ink-3);}
+  .lift-extra{flex:1 1 100%;display:grid;gap:8px;}
+  .lift-extra input{width:100%;font-family:var(--ui);font-size:16px;}
+  .lift-extra input::placeholder{font-size:13px;}
+  .setx{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px;white-space:normal;line-height:1.35;}
+  .lastnote{font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.4;}
   .log-day{width:100%;margin-top:14px;padding:13px;font-size:14px;}
   .prs{list-style:none;}
   .prs li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
@@ -780,7 +785,7 @@ function buildBodyweight(){
   var msOk=ms&&(cur-ms.kg)*DIR()>=0;
   var refs=[{v:goal,label:'goal '+goal,color:'var(--ink-2)',left:true}]; if(ms) refs.push({v:+ms.kg,label:ms.kg+(ms.label?' · '+ms.label:''),color:'var(--gold)',dash:'3 4',left:true});
   return '<div class="sec-label">Bodyweight<span class="edit-hint">tap to log today</span></div><div class="nav-top">'
-    +(ui.editBw?'<input class="nav-input num" id="bw-in" type="number" step="0.1" inputmode="decimal" value="'+cur+'" aria-label="Bodyweight in kg" />':'<div class="nav-figure num" role="button" tabindex="0" data-act="editbw">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
+    +(ui.editBw?'<input class="nav-input num" id="bw-in" type="number" step="any" inputmode="decimal" value="'+cur+'" aria-label="Bodyweight in kg" />':'<div class="nav-figure num" role="button" tabindex="0" data-act="editbw">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
     +'<div class="nav-delta"><span class="big '+(good?'pos':'neg')+'">'+sign(delta)+' kg</span><span class="muted">since '+fmtDate(g.startDate)+'</span></div></div>'
     +'<div class="ledger-bar"><div class="ledger-track"><div class="ledger-fill" id="fill" style="left:0" data-w="'+(prog(cur)*100).toFixed(1)+'"></div>'
     +(ms?'<div class="lmark ms" style="left:'+(prog(+ms.kg)*100).toFixed(1)+'%"><span>'+(msOk?'✓ ':'')+ms.kg+(ms.label?' · '+esc(ms.label):'')+'</span></div>':'')
@@ -806,7 +811,7 @@ function buildBodyweightBand(){
   var inPct=D.bw.length?Math.round(D.bw.filter(function(b){return inBand(b.kg);}).length/D.bw.length*100)+'%':'—';
   var refs=[{v:hi,label:'ceiling '+hi,color:'var(--ink-2)',left:true},{v:lo,label:'floor '+lo,color:'var(--ink-2)',left:true}];
   return '<div class="sec-label">Bodyweight<span class="edit-hint">tap to log today</span></div><div class="nav-top">'
-    +(ui.editBw?'<input class="nav-input num" id="bw-in" type="number" step="0.1" inputmode="decimal" value="'+cur+'" aria-label="Bodyweight in kg" />':'<div class="nav-figure num" role="button" tabindex="0" data-act="editbw">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
+    +(ui.editBw?'<input class="nav-input num" id="bw-in" type="number" step="any" inputmode="decimal" value="'+cur+'" aria-label="Bodyweight in kg" />':'<div class="nav-figure num" role="button" tabindex="0" data-act="editbw">'+cur.toFixed(1)+'<span class="unit">kg</span><span class="pencil">✎</span></div>')
     +'<div class="nav-delta"><span class="big '+(ok?'pos':'neg')+'">'+(ok?'in range':bandGap(cur).toFixed(1)+' kg '+(cur<lo?'under':'over'))+'</span><span class="muted">'+sign(delta)+' kg since '+fmtDate(g.startDate)+'</span></div></div>'
     +'<div class="ledger-bar"><div class="ledger-track"><div class="ledger-fill" id="fill" style="left:'+pos(lo).toFixed(1)+'%;opacity:.3" data-w="'+(pos(hi)-pos(lo)).toFixed(1)+'"></div>'
     +'<div class="lmark goal" style="left:'+pos(lo).toFixed(1)+'%"><span>'+lo+'</span></div><div class="lmark goal" style="left:'+pos(hi).toFixed(1)+'%"><span>'+hi+'</span></div>'
@@ -906,23 +911,29 @@ function numbers(){
     return '<div class="n"><div class="n-v num">'+(m.added?'+':'')+(w!=null?w:'—')+'<small>kg</small></div><div class="n-l">'+esc(m.name)+'</div>'+(ch!=null?'<div class="n-c '+(ch>=0?'pos':'neg')+'">'+sign(ch,1).replace('.0','')+'kg'+(b.length?' · 12 wks':' · since start')+'</div>':'')+'</div>';
   }).join('')+'</div>';
 }
+/* per-set extras: alternative exercise (alt) and a short note */
+function setExtra(s){ var t=[]; if(s.alt) t.push('\u21BA '+esc(s.alt)); if(s.note) t.push('\u201C'+esc(s.note)+'\u201D'); return t.length?'<span class="setx">'+t.join(' &middot; ')+'</span>':''; }
+function lastWith(arr,k){ for(var i=arr.length-1;i>=0;i--){ if(arr[i]&&arr[i][k]) return arr[i]; } return null; }
+function lastNoteLine(arr){ var n=lastWith(arr,'note'); return n?'<div class="sub-h">Last note &middot; '+fmtDate(n.date)+'</div><div class="lastnote">'+esc(n.note)+'</div>':''; }
+function extraFields(p,alt){ return '<div class="lift-extra"><input id="'+p+'alt" type="text" maxlength="80" autocomplete="off" placeholder="Swapped exercise? e.g. seated DB shoulder press" aria-label="Alternative exercise (optional)" value="'+esc(alt||'')+'" /><input id="'+p+'note" type="text" maxlength="200" autocomplete="off" placeholder="Note (optional): seat 4, felt easy, shoulder tight" aria-label="Note for this set (optional)" /></div>'; }
+function readExtra(p,o){ var a=val(p+'alt').trim(), n=val(p+'note').trim(); if(a) o.alt=a.slice(0,80); if(n) o.note=n.slice(0,200); return o; }
 function liftRow(m){
   var h=hist(m.id), last=h[h.length-1], open=ui.open==='m:'+m.id, sc=h.map(function(x){return score(m,x);});
   var best=sc.length?Math.max.apply(null,sc):0, isPr=h.length>1&&sc[sc.length-1]>=best&&sc.slice(0,-1).every(function(v){return v<best;});
   var ch=liftChange(m,h), bw=plainBw(m);
-  var detail=last?(bw?'last '+last.reps+' reps':'last '+(m.added?'+':'')+last.weight+'kg × '+last.reps)+' · '+fmtDate(last.date):(m.scheme?m.scheme+' · ':'')+'tap to log';
+  var detail=last?(bw?'last '+last.reps+' reps':'last '+(m.added?'+':'')+last.weight+'kg × '+last.reps)+' · '+fmtDate(last.date)+(last.alt?' · '+last.alt:''):(m.scheme?m.scheme+' · ':'')+'tap to log';
   var figs=bw?(last?last.reps+'<span class="muted"> reps</span>':'—'):(last?r1(e1rm(last.weight,last.reps))+'<span class="muted"> e1rm</span>':'—');
   var x='';
   if(open){
     var from=rangeFrom('lift',h.length?h[0].date:TODAY);
-    var tdy=h.filter(function(s){return s.date===TODAY;}), rec=tdy.concat(h.filter(function(s){return s.date<TODAY;}).slice(-3)).reverse().map(function(s){ return '<li><span>'+fmtDate(s.date)+'</span><span style="display:flex;align-items:center;gap:6px"><span class="fm">'+(s.weight!=null?(m.added?'+':'')+s.weight+'kg × ':'')+s.reps+'</span>'+(s.id?'<button class="del" data-act="delset" data-id="'+esc(s.id)+'" aria-label="Delete set">×</button>':'')+'</span></li>'; }).join('');
-    x='<div class="pos-x">'+demoBlock(demoId(m))
+    var tdy=h.filter(function(s){return s.date===TODAY;}), rec=tdy.concat(h.filter(function(s){return s.date<TODAY;}).slice(-3)).reverse().map(function(s){ return '<li><span>'+fmtDate(s.date)+setExtra(s)+'</span><span style="display:flex;align-items:center;gap:6px"><span class="fm">'+(s.weight!=null?(m.added?'+':'')+s.weight+'kg × ':'')+s.reps+'</span>'+(s.id?'<button class="del" data-act="delset" data-id="'+esc(s.id)+'" aria-label="Delete set">×</button>':'')+'</span></li>'; }).join('');
+    x='<div class="pos-x">'+demoBlock((last&&last.alt&&demoId({name:last.alt}))||demoId(m))
       +(h.length?'<div class="chart-card" style="margin-top:8px"><div class="chart-head"><span class="chart-title">'+(bw?'Reps':'Top set &amp; e1RM')+'</span>'+seg('lift',['3M','6M','ALL'])+'</div>'
       +tchart({from:from,to:TODAY,h:150,bands:holBands(),yfmt:function(v){return Math.round(v);},series:bw?[{type:'line',pts:h.map(function(s){return [s.date,s.reps];}),color:'var(--gain)',end:true}]
         :[{type:'dots',pts:h.map(function(s){return [s.date,s.weight];}),color:'var(--ink-3)',r:2,op:.7},{type:'line',pts:h.map(function(s){return [s.date,r1(e1rm(s.weight,s.reps))];}),color:'var(--gain)',w:2,end:true}]})
       +(bw?'':'<div class="legend"><span><i style="background:var(--ink-3)"></i>top set kg</span><span><i style="background:var(--gain)"></i>estimated 1RM</span></div>')+'</div>':'')
-      +(m.scheme?'<div class="sub-h">Target · '+esc(m.scheme)+'</div>':'')
-      +'<form class="lift-log" data-f="lift" data-id="'+esc(m.id)+'">'+(bw?'':'<input id="lw" type="number" step="0.5" inputmode="decimal" placeholder="'+(m.added?'+kg':'kg')+'" value="'+(last?last.weight:(m.load||''))+'" aria-label="Weight kg" /><span class="x">×</span>')+'<input id="lr" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log top set</button></form>'
+      +(m.scheme?'<div class="sub-h">Target · '+esc(m.scheme)+'</div>':'')+lastNoteLine(h)
+      +'<form class="lift-log" data-f="lift" data-id="'+esc(m.id)+'">'+(bw?'':'<input id="lw" type="number" step="any" inputmode="decimal" placeholder="'+(m.added?'+kg':'kg')+'" value="'+(last?last.weight:(m.load||''))+'" aria-label="Weight kg" /><span class="x">×</span>')+'<input id="lr" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log top set</button>'+extraFields('l',last&&last.alt)+'</form>'
       +(rec?'<ul class="food-list recent">'+rec+'</ul>':'')+'</div>';
   }
   return '<div class="pos-row" data-act="open" data-k="m:'+esc(m.id)+'"><div style="min-width:0"><div class="pos-name">'+esc(m.name)+(isPr?'<span class="pr">★ PR</span>':'')+'</div><div class="pos-detail">'+esc(detail)+(m.note?' · '+esc(m.note):'')+'</div></div>'
@@ -939,11 +950,12 @@ function accRow(d,slot,spec){
   function fmtSet(x){ return (x.weight!=null?x.weight+'kg × ':'')+x.reps; }
   var form='';
   if(open){
-    var list=todays.length?'<ul class="food-list recent">'+todays.map(function(x,i){ return '<li><span>Set '+(i+1)+'</span><span style="display:flex;align-items:center;gap:6px"><span class="fm">'+fmtSet(x)+'</span><button class="del" data-act="delset" data-id="'+esc(x.id)+'" aria-label="Delete set '+(i+1)+'">×</button></span></li>'; }).join('')+'</ul>':'';
-    var prevLine=prev.length?'<div class="sub-h">Last time · '+fmtDate(prevDate)+' · '+prev.map(fmtSet).join(', ')+'</div>':'';
+    var list=todays.length?'<ul class="food-list recent">'+todays.map(function(x,i){ return '<li><span>Set '+(i+1)+setExtra(x)+'</span><span style="display:flex;align-items:center;gap:6px"><span class="fm">'+fmtSet(x)+'</span><button class="del" data-act="delset" data-id="'+esc(x.id)+'" aria-label="Delete set '+(i+1)+'">×</button></span></li>'; }).join('')+'</ul>':'';
+    var prevAlt=lastWith(prev,'alt'), prevLine=prev.length?'<div class="sub-h">Last time · '+fmtDate(prevDate)+' · '+prev.map(fmtSet).join(', ')+(prevAlt?' · '+esc(prevAlt.alt):'')+'</div>':'';
     var wPre=last&&last.weight!=null?last.weight:'';
-    form='<div class="pos-x">'+demoBlock(demoId(spec||(nm?{name:nm}:null)))+(spec&&spec.scheme?'<div class="sub-h">Target · '+esc(spec.scheme)+'</div>':'')+prevLine
-      +'<form class="lift-log" data-f="acc" data-day="'+esc(d.id)+'" data-slot="'+slot+'"><input id="an" style="flex:1 1 100%;width:auto" placeholder="Exercise name" aria-label="Exercise name" value="'+esc(nm)+'" /><input id="aw" type="number" step="0.5" inputmode="decimal" placeholder="kg" aria-label="Weight kg" value="'+esc(wPre)+'" /><span class="x">×</span><input id="ar" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log set '+(todays.length+1)+'</button></form>'
+    var altNow=last&&last.alt?last.alt:'';
+    form='<div class="pos-x">'+demoBlock((altNow&&demoId({name:altNow}))||demoId(spec||(nm?{name:nm}:null)))+(spec&&spec.scheme?'<div class="sub-h">Target · '+esc(spec.scheme)+'</div>':'')+prevLine+lastNoteLine(past)
+      +'<form class="lift-log" data-f="acc" data-day="'+esc(d.id)+'" data-slot="'+slot+'">'+(spec?'<input id="an" type="hidden" value="'+esc(nm)+'" />':'<input id="an" style="flex:1 1 100%;width:auto" placeholder="Exercise name" aria-label="Exercise name" value="'+esc(nm)+'" />')+'<input id="aw" type="number" step="any" inputmode="decimal" placeholder="kg" aria-label="Weight kg" value="'+esc(wPre)+'" /><span class="x">×</span><input id="ar" type="number" inputmode="numeric" placeholder="reps" aria-label="Reps" /><button class="mini-btn" type="submit">Log set '+(todays.length+1)+'</button>'+extraFields('a',altNow)+'</form>'
       +list+'</div>';
   }
   var title=spec?esc(spec.name):'Accessory '+slot+(last?' &middot; <span class="muted">'+esc(last.name)+'</span>':'');
@@ -1124,10 +1136,10 @@ appEl.addEventListener('submit',function(e){
     ui.refocus='fd-n'; addLog('food',{id:uid(),date:fuelDay,name:n,kcal:Math.round(kc),protein:isNaN(p)?null:Math.round(p)}); toast('Added'); }
   else if(kk==='lift'){ var m=mainById(f.dataset.id), r=parseInt(val('lr'),10), w=parseFloat(val('lw')); if(isNaN(r)||(!plainBw(m)&&isNaN(w))){ toast('Enter weight and reps'); return; }
     if(r<1||(!plainBw(m)&&w<0)){ toast('Reps must be 1 or more, weight 0 or more'); return; }
-    addLog('liftLog',{id:uid(),date:TODAY,lift:m.id,weight:plainBw(m)?null:w,reps:r}); toast('Set logged · tap × to undo'); }
+    addLog('liftLog',readExtra('l',{id:uid(),date:TODAY,lift:m.id,weight:plainBw(m)?null:w,reps:r})); toast('Set logged · tap × to undo'); }
   else if(kk==='acc'){ var an=val('an').trim(), aw=parseFloat(val('aw')), ar=parseInt(val('ar'),10); if(!an||isNaN(ar)){ toast('Enter a name and reps'); return; }
     if(ar<1||(!isNaN(aw)&&aw<0)){ toast('Reps must be 1 or more, weight 0 or more'); return; }
-    ui.refocus='ar'; addLog('liftLog',{id:uid(),date:TODAY,lift:'acc',day:f.dataset.day,slot:parseInt(f.dataset.slot,10),name:an,weight:isNaN(aw)?null:aw,reps:ar}); toast('Set logged · tap × to undo'); }
+    ui.refocus='ar'; addLog('liftLog',readExtra('a',{id:uid(),date:TODAY,lift:'acc',day:f.dataset.day,slot:parseInt(f.dataset.slot,10),name:an,weight:isNaN(aw)?null:aw,reps:ar})); toast('Set logged · tap × to undo'); }
 });
 
 /* ---------------- coach panel (only on devices opened once with #coach) ---------------- */
@@ -1169,7 +1181,7 @@ function planUpdate(o){
         if(D.sessions.some(function(s){return s.date===x.date&&s.day===x.day;})){ skip++; return; } out.push({date:x.date,day:x.day,t:t,src:'coach'}); }
       else if(f==='liftLog'){ if(x.lift!=='acc'&&mains.indexOf(x.lift)<0){ plan.errors.push('liftLog['+i+'].lift "'+x.lift+'" is not a main lift id'); return; } if(!(+x.reps>0)){ plan.errors.push('liftLog['+i+'] needs reps'); return; }
         var w=x.weight==null?null:+x.weight; if(D.liftLog.some(function(s){return s.date===x.date&&s.lift===x.lift&&s.reps===+x.reps&&(s.weight==null?null:+s.weight)===w&&(s.name||'')===(x.name||'');})){ skip++; return; }
-        var it={id:uid(),date:x.date,lift:x.lift,weight:w,reps:+x.reps}; if(x.lift==='acc'){ it.name=x.name||'Accessory'; if(x.day) it.day=x.day; if(x.slot) it.slot=+x.slot; } out.push(it); }
+        var it={id:uid(),date:x.date,lift:x.lift,weight:w,reps:+x.reps}; if(x.lift==='acc'){ it.name=x.name||'Accessory'; if(x.day) it.day=x.day; if(x.slot) it.slot=+x.slot; } if(x.alt) it.alt=String(x.alt).slice(0,80); if(x.note) it.note=String(x.note).slice(0,200); out.push(it); }
       else if(f==='food'){ if(!x.name||!(+x.kcal>=0)){ plan.errors.push('food['+i+'] needs name and kcal'); return; }
         if(D.food.some(function(y){return y.date===x.date&&y.name===x.name&&y.kcal===Math.round(+x.kcal);})){ skip++; return; } out.push({id:uid(),date:x.date,name:String(x.name),kcal:Math.round(+x.kcal),protein:x.protein==null?null:Math.round(+x.protein)}); }
       else if(f==='checkins'){ if(!(+x.week>0)){ plan.errors.push('checkins['+i+'] needs week'); return; }
