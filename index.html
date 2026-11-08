@@ -393,6 +393,9 @@ var FIREBASE_CONFIG = {
    APP CODE: identical for every client.
    ===================================================================== */
 var TODAY = ymd();
+/* An app left open past midnight (normal for a Home Screen app) would keep calling yesterday "today" and log to it. Reload when it wakes on a new date. */
+(function(){ function chk(){ if(!document.hidden&&ymd()!==TODAY){ try{ location.reload(); }catch(e){} } }
+  document.addEventListener('visibilitychange',chk); window.addEventListener('pageshow',chk); window.addEventListener('focus',chk); })();
 var LOG_KEYS = ['bodyweight','sessions','liftLog','food','checkins','photos'];          /* append-only, merge-safe */
 var COACH_KEYS = ['profile','goal','targets','program','featured','holidays','notes','reminders'];  /* set by coach */
 var params = new URLSearchParams(location.search);
@@ -1286,7 +1289,7 @@ appEl.addEventListener('submit',function(e){
    A scheduled GitHub job (reminders/send.js) sends a nudge only when nothing is logged that day. */
 var VAPID_KEY = '';   /* optional. Blank uses Firebase's default web push key. */
 var DOW_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-var fbApp=null, pushBusy=false, msgP=null;
+var fbApp=null, pushBusy=false, msgP=null, pushErr='';
 function remErrors(r){
   var e=[], okT=function(v){ return v==null||v===false||(typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v)); };
   if(!r||typeof r!=='object'||Array.isArray(r)) return ['reminders must be an object like {"on":true,"food":"20:00"}'];
@@ -1323,7 +1326,7 @@ function reminderCard(){
   var body= s==='homescreen'?'On iPhone, reminders only work from the Home Screen app. In Safari tap Share → Add to Home Screen, then open your dashboard from that icon.'
     : s==='unsupported'?'This browser can’t show reminders. Open your link in Safari on iPhone, or Chrome.'
     : s==='denied'?'Notifications are blocked for this app. Turn them on in your phone’s Settings → Notifications, then reopen the dashboard.'
-    : 'A nudge only when something’s missing that day: '+esc(remSummary(r))+'.';
+    : 'A nudge only when something’s missing that day: '+esc(remSummary(r))+'.'+(pushErr?'<br><span class="muted">Error: '+esc(pushErr)+'</span>':'');
   return '<div class="card rem-card"><div class="row-head"><span class="row-title">Reminders</span></div><p class="rem-p">'+body+'</p>'
     +(s==='ask'?'<button class="btn" data-act="pushon"'+(pushBusy?' disabled':'')+'>'+(pushBusy?'Turning on…':'Turn on reminders')+'</button>':'')+'</div>';
 }
@@ -1354,15 +1357,18 @@ function savePushToken(tok,old){
 function pushOn(){
   if(pushBusy) return;
   var perm; try{ perm=Notification.requestPermission(); }catch(e){ perm=null; } /* must start inside the tap on iPhone */
-  pushBusy=true; render();
+  pushBusy=true; pushErr=''; render();
   Promise.resolve(perm).then(function(p){ p=p||Notification.permission;
     if(p!=='granted') throw new Error(p==='denied'?'denied':'dismissed');
     if(!ref) throw new Error('offline');
     return getPushToken(); })
   .then(function(tok){ if(!tok) throw new Error('no token'); return savePushToken(tok,pushToken()); })
   .then(function(){ pushBusy=false; render(); toast('Reminders on'); },
-    function(err){ pushBusy=false; render(); var m=String(err&&err.message||err); console.warn(err);
-      toast(m==='denied'?'Notifications blocked: turn them on in Settings':m==='dismissed'?'Reminders not turned on':m==='offline'?'You’re offline. Try again when connected':'Couldn’t turn on reminders. Try again'); });
+    function(err){ pushBusy=false; var m=String(err&&err.message||err), code=String(err&&err.code||''), known=(m==='denied'||m==='dismissed'||m==='offline'); console.warn(err);
+      pushErr=known?'':(code||m).replace(/^Firebase: /,'').slice(0,140); render();
+      toast(m==='denied'?'Notifications blocked: turn them on in Settings':m==='dismissed'?'Reminders not turned on':m==='offline'?'You’re offline. Try again when connected':'Couldn’t turn on reminders'+(pushErr?' ('+pushErr.slice(0,48)+')':'')+'. Try again');
+      /* save the real reason on the client record so the coach can read it without a screenshot */
+      if(!known&&ref) fb.updateDoc(ref,{'push.lastError':(code?code+' · ':'')+m.slice(0,260),'push.lastErrorAt':nowIso(),'push.ua':String(navigator.userAgent||'').slice(0,120)}).catch(function(){}); });
 }
 function pushOff(){
   var tok=pushToken(); setPushToken(''); render(); toast('Reminders off on this device');
@@ -1452,19 +1458,35 @@ function renderCoachPhotos(){
   var sig=items.map(function(p){ var c=PHOTO_CACHE[p.id]; return p.id+(c?(c.img?'i':'')+(c.draft?'d':''):''); }).join(',');
   if(sig===cpPhotoSig) return; cpPhotoSig=sig;
   if(!items.length){ box.innerHTML='<p class="muted">No food photos waiting.</p>'; return; }
-  box.innerHTML='<div class="row"><button class="btn ghost" data-cpa="refresh">Refresh (check for Claude’s estimates)</button></div>'+items.map(function(p){ var c=PHOTO_CACHE[p.id]||{}, d=c.draft||{}, k=esc(p.id);
+  var nReady=items.filter(function(p){ var c=PHOTO_CACHE[p.id]; return c&&c.draft; }).length;
+  box.innerHTML='<div class="row"><button class="btn ghost" data-cpa="refresh">Refresh (check for Claude’s estimates)</button>'+(nReady>1?'<button class="btn" data-cpa="approveall">Approve all ('+nReady+')</button>':'')+'</div>'+items.map(function(p){ var c=PHOTO_CACHE[p.id]||{}, d=c.draft||{}, k=esc(p.id);
     return '<div class="cp-ph" data-pid="'+k+'"><div class="cp-ph-top">'+(c.img?'<img src="'+c.img+'" alt="" data-cpa="view" data-id="'+k+'" />':'<span class="ph-skel"></span>')+'<div><b>'+dow(p.date)+' '+fmtDate(p.date)+'</b>'+(c.note?'<br>Client: “'+esc(c.note)+'”':'')
       +(c.draft?'<br><span class="muted">Claude: '+esc(d.kcal)+' kcal · '+esc(d.protein)+'g'+(d.conf?' · '+esc(d.conf)+' confidence':'')+(d.why?'<br>'+esc(d.why):'')+'</span>':'<br><span class="muted">No estimate yet</span>')+'</div></div>'
       +'<div class="row"><input id="cpn-'+k+'" placeholder="Name" value="'+esc(d.name||c.note||'')+'" /></div>'
       +'<div class="row"><input id="cpk-'+k+'" type="number" inputmode="numeric" placeholder="kcal" value="'+(d.kcal!=null?esc(d.kcal):'')+'" /><input id="cpp-'+k+'" type="number" inputmode="numeric" placeholder="protein g" value="'+(d.protein!=null?esc(d.protein):'')+'" /></div>'
       +'<div class="row"><button class="btn" data-cpa="approve" data-id="'+k+'">Approve</button><button class="btn ghost" data-cpa="reject" data-id="'+k+'">Reject</button></div></div>'; }).join('');
 }
+function approvePhotoWith(e,n,kc,p){
+  var fid=uid(); addLog('food',{id:fid,date:e.date,name:n.slice(0,80),kcal:Math.round(kc),protein:isNaN(p)?null:Math.round(p),photo:e.id,src:'photo'});
+  setPhotoStatus(e.id,'approved',{food:fid});
+}
 function approvePhoto(id){
   var e=photoEntries('food').filter(function(p){ return p.id===id; })[0]; if(!e) return;
   var n=val('cpn-'+id).trim(), kc=parseFloat(val('cpk-'+id)), p=parseFloat(val('cpp-'+id));
   if(!n||isNaN(kc)||kc<0){ toast('Add a name and calories'); return; }
-  var fid=uid(); addLog('food',{id:fid,date:e.date,name:n.slice(0,80),kcal:Math.round(kc),protein:isNaN(p)?null:Math.round(p),photo:id,src:'photo'});
-  setPhotoStatus(id,'approved',{food:fid}); cpPhotoSig=''; toast('Logged: '+n);
+  approvePhotoWith(e,n,kc,p); cpPhotoSig=''; toast('Logged: '+n);
+}
+/* One tap: approves every waiting photo that has a name and calories filled in (Claude's estimate, or what you typed). */
+function cpField(id){ var el=document.getElementById(id); return el?String(el.value||''):''; }
+function approveAllPhotos(){
+  var from=addDays(TODAY,-21), ready=[], skipped=0;
+  /* read every field first: approving re-draws the list */
+  photoEntries('food').forEach(function(e){ var s=photoStatus(e.id); if(e.date<from||!(s==='pending'||s==='drafted')) return;
+    var n=cpField('cpn-'+e.id).trim(), kc=parseFloat(cpField('cpk-'+e.id)), p=parseFloat(cpField('cpp-'+e.id));
+    if(!n||isNaN(kc)||kc<0) skipped++; else ready.push([e,n,kc,p]); });
+  ready.forEach(function(r){ approvePhotoWith(r[0],r[1],r[2],r[3]); });
+  cpPhotoSig=''; renderCoachPhotos();
+  toast(ready.length?('Approved '+ready.length+(skipped?' · '+skipped+' still need numbers':'')):'Nothing to approve yet');
 }
 /* ---------------- coach panel (only on devices opened once with #coach) ---------------- */
 function parseLoose(txt){ txt=String(txt||'').trim().replace(/^```[a-z]*\s*/i,'').replace(/```\s*$/,''); var i=txt.search(/[\[{]/); if(i>0) txt=txt.slice(i); return JSON.parse(txt); }
@@ -1550,7 +1572,7 @@ function renderCoach(){
 function initCoach(){
   var box=cp('coach'); if(!box) return;
   box.addEventListener('click',function(e){ var b=e.target.closest('[data-cpa]'); if(!b) return; var id=b.dataset.id, a=b.dataset.cpa;
-    if(a==='approve') approvePhoto(id); else if(a==='reject'){ setPhotoStatus(id,'rejected'); cpPhotoSig=''; renderCoachPhotos(); toast('Rejected'); } else if(a==='view'){ ui.view=id; render(); } else if(a==='refresh'){ photoEntries('food').forEach(function(p){ var st=photoStatus(p.id); if(st==='pending'||st==='drafted'){ delete PHOTO_CACHE[p.id]; delete PHOTO_LOAD[p.id]; } }); cpPhotoSig=''; renderCoachPhotos(); } });
+    if(a==='approve') approvePhoto(id); else if(a==='approveall') approveAllPhotos(); else if(a==='reject'){ setPhotoStatus(id,'rejected'); cpPhotoSig=''; renderCoachPhotos(); toast('Rejected'); } else if(a==='view'){ ui.view=id; render(); } else if(a==='refresh'){ photoEntries('food').forEach(function(p){ var st=photoStatus(p.id); if(st==='pending'||st==='drafted'){ delete PHOTO_CACHE[p.id]; delete PHOTO_LOAD[p.id]; } }); cpPhotoSig=''; renderCoachPhotos(); } });
   cp('cp-newid').addEventListener('click',function(){ var nm=(val('cp-name')||'client').toLowerCase().replace(/[^a-z]/g,'').slice(0,12)||'client', id=nm+'-'+Math.random().toString(36).slice(2,8);
     cpMsg('cp-newid-out','Client link: <b>'+esc(appUrl(id))+'</b><br><a href="'+esc(appUrl(id))+'#coach">Open it in coach mode to create the dashboard →</a>'); });
   cp('cp-copylink').addEventListener('click',function(){ copyText(appUrl(CID),'Client link copied'); });
