@@ -2,7 +2,10 @@ name: Client reminders
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Asked for every 10 minutes (off the busy :00 marks). GitHub's free timer actually fires only a few times a day,
+    # so reminders/send.js keeps each nudge valid for hours. For on-time nudges, trigger this workflow from an outside
+    # scheduler instead (see CLAUDE.md, "Reminder timing").
+    - cron: '6,16,26,36,46,56 * * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -23,10 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - run: npm install --no-save --no-audit --no-fund firebase-admin@12
       - run: node reminders/send.js
         env:

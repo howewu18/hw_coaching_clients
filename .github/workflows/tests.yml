@@ -1,0 +1,26 @@
+name: Tests
+
+# Runs on every change so a broken app never reaches clients unnoticed. Nothing here touches live client data.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Quick checks (page scripts, reminder sender, notification worker)
+        run: node tests/run.js
+      - name: Browser checks (the app with a pretend Firebase)
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.63.0
+          npx playwright install --with-deps chromium
+          node tests/app.test.js

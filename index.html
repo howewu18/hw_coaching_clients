@@ -1178,6 +1178,12 @@ function addLog(field,items){
   var u={updatedAt:next.updatedAt}; u[field]=fb.arrayUnion.apply(null,items);
   return fb.updateDoc(ref,u).catch(writeFail);
 }
+/* Logging a set counts as training: the first set of the day marks that day's session, so nobody has to remember the separate button.
+   Only when no session is marked yet today; the client can still undo it with the session button. */
+function autoSession(dayId){
+  if(!R||!dayId||(R.sessions||[]).some(function(x){ return x&&x.date===TODAY; })) return false;
+  addLog('sessions',{date:TODAY,day:dayId,t:nowIso(),auto:true}); return true;
+}
 function removeLog(field,pred){
   if(!R) return Promise.resolve();
   pendingSnap=null; /* this write's own snapshot supersedes anything held while typing */
@@ -1275,10 +1281,10 @@ appEl.addEventListener('submit',function(e){
     ui.refocus='fd-n'; addLog('food',{id:uid(),date:fuelDay,name:n,kcal:Math.round(kc),protein:isNaN(p)?null:Math.round(p)}); toast('Added'); }
   else if(kk==='lift'){ var m=mainById(f.dataset.id), r=parseInt(val('lr'),10), w=parseFloat(val('lw')); if(isNaN(r)||(!plainBw(m)&&isNaN(w))){ toast('Enter weight and reps'); return; }
     if(r<1||(!plainBw(m)&&w<0)){ toast('Reps must be 1 or more, weight 0 or more'); return; }
-    addLog('liftLog',readExtra('l',{id:uid(),date:TODAY,lift:m.id,weight:plainBw(m)?null:w,reps:r})); toast('Set logged · tap × to undo'); }
+    addLog('liftLog',readExtra('l',{id:uid(),date:TODAY,lift:m.id,weight:plainBw(m)?null:w,reps:r})); toast(autoSession((D.program.days[dayIdx]||{}).id)?'Set logged · session marked for today':'Set logged · tap × to undo'); }
   else if(kk==='acc'){ var an=val('an').trim(), aw=parseFloat(val('aw')), ar=parseInt(val('ar'),10); if(!an||isNaN(ar)){ toast('Enter a name and reps'); return; }
     if(ar<1||(!isNaN(aw)&&aw<0)){ toast('Reps must be 1 or more, weight 0 or more'); return; }
-    ui.refocus='ar'; addLog('liftLog',readExtra('a',{id:uid(),date:TODAY,lift:'acc',day:f.dataset.day,slot:parseInt(f.dataset.slot,10),name:an,weight:isNaN(aw)?null:aw,reps:ar})); toast('Set logged · tap × to undo'); }
+    ui.refocus='ar'; addLog('liftLog',readExtra('a',{id:uid(),date:TODAY,lift:'acc',day:f.dataset.day,slot:parseInt(f.dataset.slot,10),name:an,weight:isNaN(aw)?null:aw,reps:ar})); toast(autoSession(f.dataset.day)?'Set logged · session marked for today':'Set logged · tap × to undo'); }
 });
 
 /* ---------------- reminders (push notifications) ----------------
